@@ -5,21 +5,21 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Nutrospace design system — dark "bento glass" direction.
- * All colors are oklch semantic tokens. Never hardcode colors in components.
+ * NutriMatch design system — calm, light health-tech.
+ * One accent (deep teal). No traffic-light judgement colours.
+ * Never hardcode colours in components; use these tokens.
  */
 
 @theme inline {
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 8px);
+  --radius-md: calc(var(--radius) - 4px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
   --radius-2xl: calc(var(--radius) + 8px);
-  --radius-3xl: calc(var(--radius) + 12px);
-  --radius-4xl: calc(var(--radius) + 16px);
+  --radius-3xl: calc(var(--radius) + 14px);
 
-  --font-sans: "Inter", system-ui, sans-serif;
-  --font-display: "Space Grotesk", "Inter", system-ui, sans-serif;
+  --font-sans: "Manrope", system-ui, sans-serif;
+  --font-display: "Space Grotesk", "Manrope", system-ui, sans-serif;
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -41,50 +41,51 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 
-  --color-brand: var(--brand);
-  --color-brand-foreground: var(--brand-foreground);
-  --color-supportive: var(--supportive);
-  --color-caution: var(--caution);
-  --color-info: var(--info);
-  --color-glass: var(--glass);
-  --color-hairline: var(--hairline);
+  --color-strong: var(--strong);
+  --color-strong-soft: var(--strong-soft);
+  --color-moderate: var(--moderate);
+  --color-moderate-soft: var(--moderate-soft);
+  --color-gentle: var(--gentle);
+  --color-gentle-soft: var(--gentle-soft);
+  --color-surface: var(--surface);
 }
 
 :root {
   --radius: 1.25rem;
 
-  --background: oklch(0.13 0.03 268);
-  --foreground: oklch(0.97 0.006 247);
-  --card: oklch(0.18 0.032 267);
-  --card-foreground: oklch(0.97 0.006 247);
-  --popover: oklch(0.18 0.032 267);
-  --popover-foreground: oklch(0.97 0.006 247);
+  --background: oklch(0.985 0.004 165);
+  --foreground: oklch(0.24 0.02 200);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.24 0.02 200);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.24 0.02 200);
 
-  --primary: oklch(0.81 0.13 199);
-  --primary-foreground: oklch(0.16 0.035 268);
-  --secondary: oklch(0.24 0.03 265);
-  --secondary-foreground: oklch(0.97 0.006 247);
-  --muted: oklch(0.24 0.03 265);
-  --muted-foreground: oklch(0.71 0.03 257);
-  --accent: oklch(0.72 0.15 293);
-  --accent-foreground: oklch(0.16 0.035 268);
-  --destructive: oklch(0.66 0.19 20);
-  --destructive-foreground: oklch(0.98 0.005 247);
-  --border: oklch(1 0 0 / 12%);
-  --input: oklch(1 0 0 / 14%);
-  --ring: oklch(0.81 0.13 199 / 55%);
+  --primary: oklch(0.52 0.09 186);
+  --primary-foreground: oklch(0.99 0.005 165);
+  --secondary: oklch(0.96 0.01 180);
+  --secondary-foreground: oklch(0.32 0.02 200);
+  --muted: oklch(0.96 0.008 180);
+  --muted-foreground: oklch(0.55 0.015 210);
+  --accent: oklch(0.52 0.09 186);
+  --accent-foreground: oklch(0.99 0.005 165);
+  --destructive: oklch(0.58 0.14 25);
+  --destructive-foreground: oklch(0.99 0.005 165);
+  --border: oklch(0.24 0.02 200 / 10%);
+  --input: oklch(0.24 0.02 200 / 14%);
+  --ring: oklch(0.52 0.09 186 / 40%);
 
-  --brand: oklch(0.81 0.13 199);
-  --brand-foreground: oklch(0.16 0.035 268);
-  --supportive: oklch(0.79 0.15 163);
-  --caution: oklch(0.83 0.16 83);
-  --info: oklch(0.75 0.13 233);
-  --glass: oklch(1 0 0 / 6%);
-  --hairline: oklch(1 0 0 / 12%);
+  /* Match levels — quiet, informational, never alarming */
+  --strong: oklch(0.48 0.08 175);
+  --strong-soft: oklch(0.95 0.03 175);
+  --moderate: oklch(0.52 0.06 240);
+  --moderate-soft: oklch(0.95 0.02 240);
+  --gentle: oklch(0.5 0.05 60);
+  --gentle-soft: oklch(0.96 0.03 75);
 
-  --gradient-glass: linear-gradient(180deg, oklch(1 0 0 / 8.5%), oklch(1 0 0 / 3%));
-  --shadow-bento:
-    0 24px 60px -34px oklch(0 0 0 / 85%), inset 0 1px 0 oklch(1 0 0 / 8%);
+  --surface: oklch(0.97 0.008 180);
+
+  --shadow-soft: 0 1px 2px oklch(0.24 0.02 200 / 4%), 0 12px 30px -18px oklch(0.24 0.02 200 / 18%);
+  --shadow-lift: 0 2px 4px oklch(0.24 0.02 200 / 5%), 0 22px 44px -22px oklch(0.24 0.02 200 / 22%);
 }
 
 @layer base {
@@ -100,13 +101,15 @@
   }
 }
 
-@utility bento {
-  border-radius: 1.75rem;
-  background: var(--gradient-glass);
-  border: 1px solid var(--hairline);
-  backdrop-filter: blur(22px);
-  -webkit-backdrop-filter: blur(22px);
-  box-shadow: var(--shadow-bento);
+@utility card-soft {
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 1.5rem;
+  box-shadow: var(--shadow-soft);
+}
+
+@utility shadow-lift {
+  box-shadow: var(--shadow-lift);
 }
 
 @utility eyebrow {
@@ -114,5 +117,5 @@
   font-size: 11px;
   line-height: 1.2;
   text-transform: uppercase;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.16em;
 }
