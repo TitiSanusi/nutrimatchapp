@@ -210,7 +210,7 @@ function Index() {
             </div>
           </section>
 
-          <section className="bento p-6 md:col-span-4">
+          <section className="bento self-start p-6 md:col-span-4">
             <p className="eyebrow text-muted-foreground">Why we say this</p>
             <ul className="mt-4 space-y-3">
               {reading.factors.slice(0, 4).map((f) => (
@@ -230,7 +230,7 @@ function Index() {
             </p>
           </section>
 
-          <section className="bento p-6 md:col-span-4">
+          <section className="bento self-start p-6 md:col-span-4">
             <p className="eyebrow text-muted-foreground">Gentle nudge</p>
             <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{reading.nudge}</p>
             <button
@@ -241,7 +241,7 @@ function Index() {
             </button>
           </section>
 
-          <section className="bento p-6 md:col-span-4">
+          <section className="bento self-start p-6 md:col-span-4">
             <p className="eyebrow text-muted-foreground">Compare alternative</p>
             <div className="mt-4 space-y-3">
               {alternatives.map(({ product: alt, reading: altReading }) => (
