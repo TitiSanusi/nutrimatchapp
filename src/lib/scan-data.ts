@@ -229,7 +229,15 @@ function satFatFactor(p: Product, emphasis: number): Factor {
   };
 }
 
-const emphasisByGoal: Record<GoalId, Record<string, number>> = {
+type Emphasis = {
+  sugar: number;
+  fiber: number;
+  protein: number;
+  sodium: number;
+  satfat: number;
+};
+
+const emphasisByGoal: Record<GoalId, Emphasis> = {
   balanced: { sugar: 1, fiber: 1, protein: 1, sodium: 0.8, satfat: 0.6 },
   "lower-sugar": { sugar: 3, fiber: 1.5, protein: 0.8, sodium: 0.4, satfat: 0.4 },
   "more-protein": { protein: 3, fiber: 1, sugar: 0.8, sodium: 0.5, satfat: 0.5 },
