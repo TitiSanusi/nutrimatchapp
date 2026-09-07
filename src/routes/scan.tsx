@@ -33,7 +33,12 @@ function ScanPage() {
   const [code, setCode] = useState("");
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => () => timer.current && clearTimeout(timer.current), []);
+  useEffect(() => {
+    return () => {
+      if (timer.current) clearTimeout(timer.current);
+    };
+  }, []);
+
 
   const resolve = (barcode: string) => {
     setPhase("scanning");
