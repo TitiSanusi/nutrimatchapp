@@ -240,13 +240,13 @@ function Index() {
                   <div className="flex justify-between gap-3">
                     <span className="text-sm">{alt.name}</span>
                     <span
-                      className={`text-xs tabular-nums ${toneText[altReading.factors[0].tone]}`}
+                      className={`text-xs tabular-nums ${toneText[altReading.factors[0]!.tone]}`}
                     >
                       {altReading.fit}%
                     </span>
                   </div>
                   <p className="mt-0.5 text-xs text-muted-foreground">
-                    {altReading.factors[0].label} {altReading.factors[0].value} ·{" "}
+                    {altReading.factors[0]!.label} {altReading.factors[0]!.value} ·{" "}
                     {alt.fiber}g fiber
                   </p>
                 </button>
