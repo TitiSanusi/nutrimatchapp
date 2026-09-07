@@ -113,12 +113,28 @@ function Index() {
               </div>
             </div>
 
-            <div className="mt-5 rounded-2xl bg-supportive/10 p-4 ring-1 ring-supportive/25">
+            <div
+              className={`mt-5 rounded-2xl p-4 ring-1 ${
+                reading.fit >= 70
+                  ? "bg-supportive/10 ring-supportive/25"
+                  : reading.fit >= 50
+                    ? "bg-info/10 ring-info/25"
+                    : "bg-caution/10 ring-caution/25"
+              }`}
+            >
               <div className="flex items-center justify-between gap-3">
-                <span className="font-display text-sm font-medium text-supportive">
+                <span
+                  className={`font-display text-sm font-medium ${
+                    reading.fit >= 70
+                      ? "text-supportive"
+                      : reading.fit >= 50
+                        ? "text-info"
+                        : "text-caution"
+                  }`}
+                >
                   {reading.headline}
                 </span>
-                <span className="rounded-full bg-supportive/20 px-2.5 py-1 text-xs font-semibold text-supportive">
+                <span className="rounded-full bg-foreground/10 px-2.5 py-1 text-xs font-semibold tabular-nums">
                   {reading.fit}% match
                 </span>
               </div>
