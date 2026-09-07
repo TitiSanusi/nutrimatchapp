@@ -277,7 +277,7 @@ export function readProduct(p: Product, goalId: GoalId): Reading {
         ? `Reasonable fit, with one thing to watch`
         : `Worth a closer look for your goal`;
 
-  const lead = factors[0];
+  const lead = factors[0]!;
   const summary =
     fit >= 75
       ? `The things that matter most for ${goal.blurb} line up here — ${lead.label.toLowerCase()} in particular.`
