@@ -49,7 +49,7 @@ function Index() {
   const [productIndex, setProductIndex] = useState(0);
   const [nudgeTaken, setNudgeTaken] = useState(false);
 
-  const product = products[productIndex];
+  const product = products[productIndex]!;
   const goal = goals.find((g) => g.id === goalId)!;
   const reading = useMemo(() => readProduct(product, goalId), [product, goalId]);
   const alternatives = useMemo(() => alternativesFor(product, goalId), [product, goalId]);
