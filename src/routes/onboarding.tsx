@@ -43,6 +43,10 @@ function Onboarding() {
   // Seed from any saved profile so going back and forth keeps selections.
   useEffect(() => {
     if (!ready) return;
+    if (profile.onboarded) {
+      navigate({ to: "/home", replace: true });
+      return;
+    }
     setAge(profile.age ? String(profile.age) : "");
     setCountry(countryByName(profile.country) ? profile.country : "");
     setSelected(profile.goals);
