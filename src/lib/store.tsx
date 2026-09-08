@@ -177,13 +177,20 @@ export function NutriMatchProvider({ children }: { children: ReactNode }) {
   const saveProfile = useCallback(
     async (patch: ProfilePatch) => {
       if (!userId) return;
-      const row: Record<string, unknown> = {};
-      if (patch.name !== undefined) row['name'] = patch.name;
-      if (patch.age !== undefined) row['age'] = patch.age;
-      if (patch.country !== undefined) row['country'] = patch.country;
-      if (patch.onboarded !== undefined) row['onboarded'] = patch.onboarded;
-      if (patch.avatarPath !== undefined) row['avatar_path'] = patch.avatarPath;
-      if (patch.goals !== undefined) row['goals'] = normalizeGoals(patch.goals);
+      const row: {
+        name?: string;
+        age?: number | null;
+        country?: string;
+        onboarded?: boolean;
+        avatar_path?: string | null;
+        goals?: string[];
+      } = {};
+      if (patch.name !== undefined) row.name = patch.name;
+      if (patch.age !== undefined) row.age = patch.age;
+      if (patch.country !== undefined) row.country = patch.country;
+      if (patch.onboarded !== undefined) row.onboarded = patch.onboarded;
+      if (patch.avatarPath !== undefined) row.avatar_path = patch.avatarPath;
+      if (patch.goals !== undefined) row.goals = normalizeGoals(patch.goals);
 
       const { error } = await supabase.from("profiles").update(row).eq("id", userId);
       if (error) throw error;
