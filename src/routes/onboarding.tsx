@@ -69,16 +69,18 @@ function Onboarding() {
   };
 
   const toggleGoal = (id: GoalId) => {
-    setNotice("");
     setError("");
-    setSelected((prev) => {
-      if (prev.includes(id)) return prev.filter((g) => g !== id);
-      if (prev.length >= MAX_GOALS) {
-        setNotice("You can choose up to three goals — deselect one to swap it out.");
-        return prev;
-      }
-      return [...prev, id];
-    });
+    if (selected.includes(id)) {
+      setNotice("");
+      setSelected(selected.filter((g) => g !== id));
+      return;
+    }
+    if (selected.length >= MAX_GOALS) {
+      setNotice("You can choose up to three goals — deselect one to swap it out.");
+      return;
+    }
+    setNotice("");
+    setSelected([...selected, id]);
   };
 
   const finish = () => {
