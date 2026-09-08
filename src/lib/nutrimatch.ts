@@ -23,20 +23,7 @@ export const goals: Goal[] = [
   { id: "less-sodium", label: "Reduce sodium", blurb: "gentler on salt" },
 ];
 
-export const countries = [
-  "United Kingdom",
-  "United States",
-  "Ireland",
-  "Germany",
-  "France",
-  "Spain",
-  "Netherlands",
-  "Sweden",
-  "India",
-  "Nigeria",
-  "Australia",
-  "Canada",
-];
+export { countryNames as countries } from "./countries";
 
 export type Product = {
   id: string;

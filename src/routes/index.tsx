@@ -36,27 +36,34 @@ function Welcome() {
 
         <p className="eyebrow mt-10 text-primary">Scan. Understand. Choose better.</p>
         <h1 className="font-display mt-3 text-4xl leading-[1.1] font-semibold tracking-tight">
-          Know your food.
+          Find foods that
           <br />
-          Make better choices.
+          match your goals.
         </h1>
         <p className="mt-4 text-[15px] leading-relaxed text-muted-foreground">
-          Scan a packaged food and see how it fits your personal nutrition goal.
+          NutriMatch helps you understand how foods fit your personal nutrition goals, so you can
+          make choices that work for you.
         </p>
 
         <div className="mt-8 space-y-3">
           <Link
-            to="/onboarding"
+            to="/signup"
             className="font-display block w-full rounded-2xl bg-primary py-4 text-center text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
           >
             Get Started
           </Link>
           <Link
-            to="/signin"
+            to="/signup"
             className="font-display block w-full rounded-2xl border border-border bg-card py-4 text-center text-sm font-semibold transition-colors hover:bg-surface"
           >
-            Sign In
+            Create an Account
           </Link>
+          <p className="pt-1 text-center text-sm text-muted-foreground">
+            Already have an account?{" "}
+            <Link to="/signin" className="font-semibold text-primary">
+              Log In
+            </Link>
+          </p>
         </div>
 
         <ul className="mt-10 space-y-4">
