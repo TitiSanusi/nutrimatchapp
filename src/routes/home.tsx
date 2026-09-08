@@ -37,7 +37,19 @@ function HomePage() {
   return (
     <AppShell>
       <section className="card-soft p-6">
-        <p className="eyebrow text-primary">Your goal · {goal.label}</p>
+        <p className="eyebrow text-primary">
+          {myGoals.length > 1 ? "Your goals" : "Your goal"}
+        </p>
+        <ul className="mt-2 flex flex-wrap gap-2">
+          {myGoals.map((g) => (
+            <li
+              key={g.id}
+              className="font-display rounded-full bg-strong-soft px-3 py-1.5 text-xs font-semibold text-strong"
+            >
+              {g.label}
+            </li>
+          ))}
+        </ul>
         <h1 className="font-display mt-3 text-[26px] leading-tight font-semibold tracking-tight">
           What are you eating today?
         </h1>
