@@ -14,21 +14,18 @@ export const Route = createFileRoute("/_authenticated")({
 });
 
 function AuthenticatedLayout() {
-  const { ready, profile } = useNutriMatch();
+  const { ready, session, profile } = useNutriMatch();
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const onOnboarding = pathname.startsWith("/onboarding");
+  const needsSetup = !!session && ready && !profile.onboarded && !onOnboarding;
 
   // Anyone who hasn't finished setup resumes it; anyone who has never repeats it.
   useEffect(() => {
-    if (!ready) return;
-    if (!profile.onboarded && !onOnboarding) {
-      navigate({ to: "/onboarding", replace: true });
-    }
-  }, [ready, profile.onboarded, onOnboarding, navigate]);
+    if (needsSetup) navigate({ to: "/onboarding", replace: true });
+  }, [needsSetup, navigate]);
 
-  if (!ready) return <div className="min-h-screen bg-background" />;
-  if (!profile.onboarded && !onOnboarding) return <div className="min-h-screen bg-background" />;
+  if (!ready || needsSetup) return <div className="min-h-screen bg-background" />;
 
   return <Outlet />;
 }
