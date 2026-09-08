@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowLeft, Check } from "lucide-react";
+import { ArrowLeft, Check, Loader2 } from "lucide-react";
+import { AvatarPicker } from "@/components/avatar";
 import { CountrySelect } from "@/components/country-select";
 import { goals, type GoalId } from "@/lib/nutrimatch";
 import { countryByName } from "@/lib/countries";
@@ -13,12 +14,12 @@ export const Route = createFileRoute("/_authenticated/onboarding")({
       {
         name: "description",
         content:
-          "Two quick steps: your age and country, then the one to three nutrition goals NutriMatch should match foods against.",
+          "Three quick steps: your age and country, the one to three nutrition goals NutriMatch should match foods against, and an optional photo.",
       },
       { property: "og:title", content: "Set up your profile — NutriMatch" },
       {
         property: "og:description",
-        content: "Age, country and up to three nutrition goals — under a minute.",
+        content: "Age, country, up to three nutrition goals and an optional photo — under a minute.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -27,10 +28,10 @@ export const Route = createFileRoute("/_authenticated/onboarding")({
   component: Onboarding,
 });
 
-const steps = ["About you", "Your goals"];
+const steps = ["About you", "Your goals", "Your photo"];
 
 function Onboarding() {
-  const { profile, ready, updateProfile } = useNutriMatch();
+  const { profile, ready, saveProfile } = useNutriMatch();
   const navigate = useNavigate();
 
   const [step, setStep] = useState(0);
@@ -39,6 +40,7 @@ function Onboarding() {
   const [selected, setSelected] = useState<GoalId[]>([]);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [saving, setSaving] = useState(false);
 
   // Seed from any saved profile so going back and forth keeps selections.
   useEffect(() => {
@@ -83,18 +85,30 @@ function Onboarding() {
     setSelected([...selected, id]);
   };
 
-  const finish = () => {
+  const nextFromGoals = () => {
     if (selected.length < 1) {
       setError("Pick at least one goal so we know what to match against.");
       return;
     }
-    updateProfile({
-      age: ageNumber,
-      country,
-      goals: selected,
-      onboarded: true,
-    });
-    navigate({ to: "/home" });
+    setError("");
+    setStep(2);
+  };
+
+  const finish = async () => {
+    setSaving(true);
+    try {
+      await saveProfile({
+        age: ageNumber,
+        country,
+        goals: selected,
+        onboarded: true,
+      });
+      navigate({ to: "/home" });
+    } catch {
+      setError("We couldn't save your setup. Please try again.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -103,7 +117,7 @@ function Onboarding() {
         {step > 0 && (
           <button
             type="button"
-            onClick={() => setStep(0)}
+            onClick={() => setStep(step - 1)}
             aria-label="Back"
             className="grid size-9 shrink-0 place-items-center rounded-xl border border-border bg-card transition-colors hover:bg-surface"
           >
@@ -182,7 +196,7 @@ function Onboarding() {
             Continue
           </button>
         </section>
-      ) : (
+      ) : step === 1 ? (
         <section className="mt-9">
           <p className="eyebrow text-primary">Step 2 · Your goals</p>
           <h1 className="font-display mt-3 text-2xl font-semibold tracking-tight sm:text-3xl">
@@ -240,11 +254,48 @@ function Onboarding() {
             </button>
             <button
               type="button"
-              onClick={finish}
+              onClick={nextFromGoals}
               disabled={selected.length === 0}
               className="font-display flex-1 rounded-2xl bg-primary py-3.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
             >
-              Finish setup
+              Continue
+            </button>
+          </div>
+        </section>
+      ) : (
+        <section className="mt-9">
+          <p className="eyebrow text-primary">Step 3 · Your photo</p>
+          <h1 className="font-display mt-3 text-2xl font-semibold tracking-tight sm:text-3xl">
+            Add a photo (optional)
+          </h1>
+          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+            Entirely up to you. Without one we'll use your initials.
+          </p>
+
+          <div className="card-soft mt-6 p-6">
+            <AvatarPicker hint="JPG or PNG, up to 5 MB. You can change or remove it any time." />
+          </div>
+
+          <p className="mt-3 min-h-4 text-xs text-destructive" aria-live="polite">
+            {error}
+          </p>
+
+          <div className="mt-4 flex gap-3">
+            <button
+              type="button"
+              onClick={() => setStep(1)}
+              className="font-display rounded-2xl border border-border bg-card px-5 py-3.5 text-sm font-semibold transition-colors hover:bg-surface"
+            >
+              Back
+            </button>
+            <button
+              type="button"
+              onClick={() => void finish()}
+              disabled={saving}
+              className="font-display flex flex-1 items-center justify-center gap-2 rounded-2xl bg-primary py-3.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-60"
+            >
+              {saving && <Loader2 className="size-4 animate-spin" aria-hidden />}
+              {profile.avatarUrl ? "Finish setup" : "Skip & finish setup"}
             </button>
           </div>
         </section>
