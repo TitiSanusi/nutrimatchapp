@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Check, ChevronDown, Search } from "lucide-react";
 import { countries } from "@/lib/countries";
 import { cn } from "@/lib/utils";
@@ -24,14 +24,25 @@ export function CountrySelect({
     return list.slice(0, 120);
   }, [query]);
 
+  // Close on outside interaction only — blur-based closing swallowed option taps.
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: Event) => {
+      if (!wrap.current?.contains(e.target as Node | null)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("pointerdown", onDown, true);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", onDown, true);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
   return (
-    <div
-      ref={wrap}
-      className="relative"
-      onBlur={(e) => {
-        if (!wrap.current?.contains(e.relatedTarget as Node | null)) setOpen(false);
-      }}
-    >
+    <div ref={wrap} className="relative">
       <button
         id={id}
         type="button"
