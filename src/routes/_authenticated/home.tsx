@@ -1,8 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ScanLine, Search, ChevronRight } from "lucide-react";
 import { AppShell, MatchBadge, ProductTile } from "@/components/app-shell";
+import { Avatar } from "@/components/avatar";
 import { goals, matchProduct, productById } from "@/lib/nutrimatch";
-import { useNutriMatch } from "@/lib/store";
+import { firstName, useNutriMatch } from "@/lib/store";
 
 export const Route = createFileRoute("/_authenticated/home")({
   head: () => ({
@@ -28,6 +29,7 @@ export const Route = createFileRoute("/_authenticated/home")({
 function HomePage() {
   const { profile, history, ready } = useNutriMatch();
   const myGoals = goals.filter((g) => profile.goals.includes(g.id));
+  const first = firstName(profile.name);
 
   const recent = history
     .map((entry) => ({ entry, product: productById(entry.productId) }))
@@ -36,7 +38,21 @@ function HomePage() {
 
   return (
     <AppShell>
-      <section className="card-soft p-6">
+      <div className="flex items-center justify-between gap-4">
+        <p className="font-display text-lg font-semibold tracking-tight">
+          {first ? `Welcome back, ${first}!` : "Welcome back!"}
+        </p>
+        <Link to="/profile" aria-label="Profile and settings" className="shrink-0">
+          <Avatar
+            src={profile.avatarUrl}
+            name={profile.name}
+            email={profile.email}
+            className="size-10 text-xs"
+          />
+        </Link>
+      </div>
+
+      <section className="card-soft mt-4 p-6">
         <p className="eyebrow text-primary">
           {myGoals.length > 1 ? "Your goals" : "Your goal"}
         </p>
