@@ -1,22 +1,24 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
-import { Check } from "lucide-react";
-import { countries, goals, type GoalId } from "@/lib/nutrimatch";
-import { useNutriMatch } from "@/lib/store";
+import { useEffect, useState } from "react";
+import { ArrowLeft, Check } from "lucide-react";
+import { CountrySelect } from "@/components/country-select";
+import { goals, type GoalId } from "@/lib/nutrimatch";
+import { countryByName } from "@/lib/countries";
+import { MAX_GOALS, useNutriMatch } from "@/lib/store";
 
 export const Route = createFileRoute("/onboarding")({
   head: () => ({
     meta: [
-      { title: "Set up your goal — NutriMatch" },
+      { title: "Set up your profile — NutriMatch" },
       {
         name: "description",
         content:
-          "Choose your country and your main nutrition goal so NutriMatch can read food labels the way that suits you.",
+          "Two quick steps: your age and country, then the one to three nutrition goals NutriMatch should match foods against.",
       },
-      { property: "og:title", content: "Set up your goal — NutriMatch" },
+      { property: "og:title", content: "Set up your profile — NutriMatch" },
       {
         property: "og:description",
-        content: "Two quick steps: your country, then the nutrition goal you care about most.",
+        content: "Age, country and up to three nutrition goals — under a minute.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -25,114 +27,221 @@ export const Route = createFileRoute("/onboarding")({
   component: Onboarding,
 });
 
+const steps = ["About you", "Your goals"];
+
 function Onboarding() {
-  const { profile, updateProfile } = useNutriMatch();
+  const { profile, ready, updateProfile } = useNutriMatch();
   const navigate = useNavigate();
+
   const [step, setStep] = useState(0);
-  const [country, setCountry] = useState(profile.country);
-  const [goal, setGoal] = useState<GoalId>(profile.goal);
+  const [age, setAge] = useState("");
+  const [country, setCountry] = useState("");
+  const [selected, setSelected] = useState<GoalId[]>([]);
+  const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+
+  // Seed from any saved profile so going back and forth keeps selections.
+  useEffect(() => {
+    if (!ready) return;
+    setAge(profile.age ? String(profile.age) : "");
+    setCountry(countryByName(profile.country) ? profile.country : "");
+    setSelected(profile.goals);
+  }, [ready]);
+
+  const ageNumber = Number(age);
+  const ageValid = /^\d{1,3}$/.test(age.trim()) && ageNumber >= 13 && ageNumber <= 120;
+
+  const nextFromDetails = () => {
+    if (!ageValid) {
+      setError("Enter an age between 13 and 120.");
+      return;
+    }
+    if (!country) {
+      setError("Choose your country to continue.");
+      return;
+    }
+    setError("");
+    setStep(1);
+  };
+
+  const toggleGoal = (id: GoalId) => {
+    setNotice("");
+    setError("");
+    setSelected((prev) => {
+      if (prev.includes(id)) return prev.filter((g) => g !== id);
+      if (prev.length >= MAX_GOALS) {
+        setNotice("You can choose up to three goals — deselect one to swap it out.");
+        return prev;
+      }
+      return [...prev, id];
+    });
+  };
 
   const finish = () => {
-    updateProfile({ country, goal, onboarded: true });
+    if (selected.length < 1) {
+      setError("Pick at least one goal so we know what to match against.");
+      return;
+    }
+    updateProfile({
+      age: ageNumber,
+      country,
+      goals: selected,
+      onboarded: true,
+    });
     navigate({ to: "/home" });
   };
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-md flex-col px-6 py-10">
-      <div className="flex gap-2" aria-hidden>
-        {[0, 1].map((i) => (
-          <span
-            key={i}
-            className={`h-1.5 flex-1 rounded-full ${i <= step ? "bg-primary" : "bg-muted"}`}
-          />
-        ))}
+    <main className="mx-auto flex min-h-screen w-full max-w-xl flex-col px-6 py-10 sm:py-14">
+      <div className="flex items-center gap-3">
+        {step > 0 && (
+          <button
+            type="button"
+            onClick={() => setStep(0)}
+            aria-label="Back"
+            className="grid size-9 shrink-0 place-items-center rounded-xl border border-border bg-card transition-colors hover:bg-surface"
+          >
+            <ArrowLeft className="size-4" aria-hidden />
+          </button>
+        )}
+        <div className="flex flex-1 gap-2" aria-hidden>
+          {steps.map((s, i) => (
+            <span
+              key={s}
+              className={`h-1.5 flex-1 rounded-full ${i <= step ? "bg-primary" : "bg-muted"}`}
+            />
+          ))}
+        </div>
+        <p className="eyebrow shrink-0 text-muted-foreground">
+          {step + 1}/{steps.length}
+        </p>
       </div>
 
       {step === 0 ? (
-        <div className="mt-9">
-          <p className="eyebrow text-primary">Step 1 of 2</p>
-          <h1 className="font-display mt-3 text-2xl font-semibold tracking-tight">
-            Select your country
+        <section className="mt-9">
+          <p className="eyebrow text-primary">Step 1 · About you</p>
+          <h1 className="font-display mt-3 text-2xl font-semibold tracking-tight sm:text-3xl">
+            A little about you
           </h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Labels and reference amounts differ by region.
+          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+            Just two details. No health questionnaires, no calculations.
           </p>
 
-          <div className="mt-6 space-y-2">
-            {countries.map((c) => (
-              <button
-                key={c}
-                type="button"
-                onClick={() => setCountry(c)}
-                aria-pressed={c === country}
-                className={`flex w-full items-center justify-between rounded-2xl border px-4 py-3.5 text-left text-sm transition-colors ${
-                  c === country
-                    ? "border-primary bg-strong-soft font-semibold"
-                    : "border-border bg-card hover:bg-surface"
-                }`}
-              >
-                {c}
-                {c === country && <Check className="size-4 text-primary" aria-hidden />}
-              </button>
-            ))}
+          <label className="mt-8 block text-sm font-medium" htmlFor="age">
+            Age
+          </label>
+          <input
+            id="age"
+            inputMode="numeric"
+            value={age}
+            maxLength={3}
+            onChange={(e) => {
+              setAge(e.target.value.replace(/[^\d]/g, ""));
+              setError("");
+            }}
+            placeholder="28"
+            aria-invalid={!!error && !ageValid}
+            className={`mt-1.5 w-full rounded-xl border bg-card px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-ring ${
+              error && !ageValid ? "border-destructive" : "border-input"
+            }`}
+          />
+
+          <label className="mt-5 block text-sm font-medium" htmlFor="country">
+            Country
+          </label>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Labels and product ranges differ by country.
+          </p>
+          <div className="mt-1.5">
+            <CountrySelect
+              id="country"
+              value={country}
+              onChange={(c) => {
+                setCountry(c);
+                setError("");
+              }}
+              invalid={!!error && ageValid && !country}
+            />
           </div>
 
+          <p className="mt-3 min-h-4 text-xs text-destructive" aria-live="polite">
+            {error}
+          </p>
+
           <button
-            onClick={() => setStep(1)}
-            className="font-display mt-7 w-full rounded-2xl bg-primary py-3.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+            type="button"
+            onClick={nextFromDetails}
+            className="font-display mt-4 w-full rounded-2xl bg-primary py-3.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
           >
             Continue
           </button>
-        </div>
+        </section>
       ) : (
-        <div className="mt-9">
-          <p className="eyebrow text-primary">Step 2 of 2</p>
-          <h1 className="font-display mt-3 text-2xl font-semibold tracking-tight">
-            What is your main nutrition goal?
+        <section className="mt-9">
+          <p className="eyebrow text-primary">Step 2 · Your goals</p>
+          <h1 className="font-display mt-3 text-2xl font-semibold tracking-tight sm:text-3xl">
+            What are your nutrition goals?
           </h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Pick one — you can change it any time in your profile.
+          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+            Choose up to three. Every food you look at is read against these.
           </p>
 
-          <div className="mt-6 space-y-2">
-            {goals.map((g) => (
-              <button
-                key={g.id}
-                type="button"
-                onClick={() => setGoal(g.id)}
-                aria-pressed={g.id === goal}
-                className={`flex w-full items-center justify-between gap-3 rounded-2xl border px-4 py-3.5 text-left transition-colors ${
-                  g.id === goal
-                    ? "border-primary bg-strong-soft"
-                    : "border-border bg-card hover:bg-surface"
-                }`}
-              >
-                <span className="min-w-0">
-                  <span className="block text-sm font-semibold">{g.label}</span>
-                  <span className="mt-0.5 block text-xs text-muted-foreground">
-                    For {g.blurb}
+          <div className="mt-6 grid gap-2.5 sm:grid-cols-2">
+            {goals.map((g) => {
+              const on = selected.includes(g.id);
+              return (
+                <button
+                  key={g.id}
+                  type="button"
+                  onClick={() => toggleGoal(g.id)}
+                  aria-pressed={on}
+                  className={`flex items-start justify-between gap-3 rounded-2xl border px-4 py-3.5 text-left transition-colors ${
+                    on ? "border-primary bg-strong-soft" : "border-border bg-card hover:bg-surface"
+                  }`}
+                >
+                  <span className="min-w-0">
+                    <span className="block text-sm font-semibold">{g.label}</span>
+                    <span className="mt-0.5 block text-xs text-muted-foreground">For {g.blurb}</span>
                   </span>
-                </span>
-                {g.id === goal && <Check className="size-4 shrink-0 text-primary" aria-hidden />}
-              </button>
-            ))}
+                  <span
+                    aria-hidden
+                    className={`mt-0.5 grid size-5 shrink-0 place-items-center rounded-full border ${
+                      on ? "border-primary bg-primary text-primary-foreground" : "border-border"
+                    }`}
+                  >
+                    {on && <Check className="size-3" />}
+                  </span>
+                </button>
+              );
+            })}
           </div>
 
-          <div className="mt-7 flex gap-3">
+          <p className="mt-3 min-h-4 text-xs" aria-live="polite">
+            <span className="text-muted-foreground">
+              {selected.length}/{MAX_GOALS} selected
+            </span>
+            {notice && <span className="text-primary"> · {notice}</span>}
+            {error && <span className="text-destructive"> · {error}</span>}
+          </p>
+
+          <div className="mt-4 flex gap-3">
             <button
+              type="button"
               onClick={() => setStep(0)}
               className="font-display rounded-2xl border border-border bg-card px-5 py-3.5 text-sm font-semibold transition-colors hover:bg-surface"
             >
               Back
             </button>
             <button
+              type="button"
               onClick={finish}
-              className="font-display flex-1 rounded-2xl bg-primary py-3.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+              disabled={selected.length === 0}
+              className="font-display flex-1 rounded-2xl bg-primary py-3.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
             >
-              Start scanning
+              Finish setup
             </button>
           </div>
-        </div>
+        </section>
       )}
     </main>
   );
