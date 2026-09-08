@@ -89,11 +89,6 @@ export function CountrySelect({
                   type="button"
                   role="option"
                   aria-selected={c.name === value}
-                  onPointerDown={(e) => {
-                    e.preventDefault();
-                    onChange(c.name);
-                    setOpen(false);
-                  }}
                   onClick={() => {
                     onChange(c.name);
                     setOpen(false);
