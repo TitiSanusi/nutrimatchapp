@@ -27,7 +27,7 @@ export const Route = createFileRoute("/home")({
 
 function HomePage() {
   const { profile, history, ready } = useNutriMatch();
-  const goal = goals.find((g) => g.id === profile.goal) ?? goals[0]!;
+  const myGoals = goals.filter((g) => profile.goals.includes(g.id));
 
   const recent = history
     .map((entry) => ({ entry, product: productById(entry.productId) }))
