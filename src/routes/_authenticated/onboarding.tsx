@@ -6,7 +6,7 @@ import { goals, type GoalId } from "@/lib/nutrimatch";
 import { countryByName } from "@/lib/countries";
 import { MAX_GOALS, useNutriMatch } from "@/lib/store";
 
-export const Route = createFileRoute("/onboarding")({
+export const Route = createFileRoute("/_authenticated/onboarding")({
   head: () => ({
     meta: [
       { title: "Set up your profile — NutriMatch" },

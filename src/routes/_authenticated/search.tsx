@@ -5,7 +5,7 @@ import { AppShell, MatchBadge, ProductTile } from "@/components/app-shell";
 import { matchProduct, searchProducts } from "@/lib/nutrimatch";
 import { useNutriMatch } from "@/lib/store";
 
-export const Route = createFileRoute("/search")({
+export const Route = createFileRoute("/_authenticated/search")({
   head: () => ({
     meta: [
       { title: "Search a product — NutriMatch" },

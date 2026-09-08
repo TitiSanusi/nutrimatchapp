@@ -4,7 +4,7 @@ import { AppShell, MatchBadge, ProductTile } from "@/components/app-shell";
 import { goals, matchProduct, productById } from "@/lib/nutrimatch";
 import { useNutriMatch } from "@/lib/store";
 
-export const Route = createFileRoute("/history")({
+export const Route = createFileRoute("/_authenticated/history")({
   head: () => ({
     meta: [
       { title: "Scan history — NutriMatch" },

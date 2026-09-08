@@ -6,7 +6,7 @@ import { CountrySelect } from "@/components/country-select";
 import { goals } from "@/lib/nutrimatch";
 import { MAX_GOALS, useNutriMatch } from "@/lib/store";
 
-export const Route = createFileRoute("/profile")({
+export const Route = createFileRoute("/_authenticated/profile")({
   head: () => ({
     meta: [
       { title: "Profile & settings — NutriMatch" },

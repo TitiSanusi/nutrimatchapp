@@ -4,7 +4,7 @@ import { Loader2, ScanLine, Search } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { products, productByBarcode } from "@/lib/nutrimatch";
 
-export const Route = createFileRoute("/scan")({
+export const Route = createFileRoute("/_authenticated/scan")({
   head: () => ({
     meta: [
       { title: "Scan a barcode — NutriMatch" },
