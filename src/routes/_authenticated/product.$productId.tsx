@@ -5,7 +5,7 @@ import { AppShell, MatchBadge, ProductTile } from "@/components/app-shell";
 import { betterMatches, goals, matchProduct, productById } from "@/lib/nutrimatch";
 import { useNutriMatch } from "@/lib/store";
 
-export const Route = createFileRoute("/product/$productId")({
+export const Route = createFileRoute("/_authenticated/product/$productId")({
   head: ({ params }) => {
     const product = productById(params.productId);
     const title = product ? `${product.name} — NutriMatch` : "Product — NutriMatch";
