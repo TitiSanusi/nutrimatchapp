@@ -64,7 +64,12 @@ type Ctx = {
   saveProfile: (patch: ProfilePatch) => Promise<void>;
   uploadAvatar: (file: File) => Promise<string>;
   removeAvatar: () => Promise<void>;
-  recordScan: (productId: string) => void;
+  recordScan: (entry: {
+    barcode: string;
+    name: string | null;
+    brand: string | null;
+    imageUrl: string | null;
+  }) => void;
   clearHistory: () => void;
   signOut: () => Promise<void>;
 };
