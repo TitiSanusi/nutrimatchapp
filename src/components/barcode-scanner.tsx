@@ -77,9 +77,11 @@ export function BarcodeScanner({
     const stop = () => {
       if (raf !== null) cancelAnimationFrame(raf);
       if (timer) clearTimeout(timer);
-      stream?.getTracks().forEach((t) => t.stop());
       const video = videoRef.current;
-      if (video) video.srcObject = null;
+      // Only detach the element when it still shows THIS run's stream, so a
+      // remount that already started a fresh camera keeps playing.
+      if (video && stream && video.srcObject === stream) video.srcObject = null;
+      stream?.getTracks().forEach((t) => t.stop());
     };
 
     /** Loop that keeps trying to read a barcode until one is found. */
