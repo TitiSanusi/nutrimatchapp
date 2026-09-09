@@ -29,7 +29,10 @@ export type Profile = {
 };
 
 export type ScanEntry = {
-  productId: string;
+  barcode: string;
+  name: string | null;
+  brand: string | null;
+  imageUrl: string | null;
   goal: GoalId;
   scannedAt: string;
 };
