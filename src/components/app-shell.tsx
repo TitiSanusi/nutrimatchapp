@@ -2,7 +2,6 @@ import { Link } from "@tanstack/react-router";
 import { History, Home, ScanLine, User } from "lucide-react";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
-import type { MatchLevel } from "@/lib/nutrimatch";
 
 const navItems = [
   { to: "/home", label: "Home", icon: Home },
@@ -63,48 +62,5 @@ function BottomNav() {
         ))}
       </ul>
     </nav>
-  );
-}
-
-const levelClasses: Record<MatchLevel, string> = {
-  strong: "bg-strong-soft text-strong",
-  moderate: "bg-moderate-soft text-moderate",
-  gentle: "bg-gentle-soft text-gentle",
-};
-
-export function MatchBadge({
-  level,
-  label,
-  className,
-}: {
-  level: MatchLevel;
-  label: string;
-  className?: string;
-}) {
-  return (
-    <span
-      className={cn(
-        "font-display inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold",
-        levelClasses[level],
-        className,
-      )}
-    >
-      <span className="size-1.5 rounded-full bg-current" aria-hidden />
-      {label}
-    </span>
-  );
-}
-
-export function ProductTile({ emoji, className }: { emoji: string; className?: string }) {
-  return (
-    <div
-      aria-hidden
-      className={cn(
-        "grid shrink-0 place-items-center rounded-2xl bg-surface ring-1 ring-border",
-        className ?? "size-14 text-2xl",
-      )}
-    >
-      <span>{emoji}</span>
-    </div>
   );
 }
