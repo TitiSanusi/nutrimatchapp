@@ -164,6 +164,7 @@ export function BarcodeScanner({
           }
         }
 
+        console.log("[scan] native?", !!Ctor, !!native);
         if (native) {
           const detector = native;
           runLoop(async () => {
