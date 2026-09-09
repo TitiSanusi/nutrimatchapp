@@ -29,7 +29,10 @@ export type Profile = {
 };
 
 export type ScanEntry = {
-  productId: string;
+  barcode: string;
+  name: string | null;
+  brand: string | null;
+  imageUrl: string | null;
   goal: GoalId;
   scannedAt: string;
 };
@@ -61,7 +64,12 @@ type Ctx = {
   saveProfile: (patch: ProfilePatch) => Promise<void>;
   uploadAvatar: (file: File) => Promise<string>;
   removeAvatar: () => Promise<void>;
-  recordScan: (productId: string) => void;
+  recordScan: (entry: {
+    barcode: string;
+    name: string | null;
+    brand: string | null;
+    imageUrl: string | null;
+  }) => void;
   clearHistory: () => void;
   signOut: () => Promise<void>;
 };
@@ -73,7 +81,12 @@ const historyKey = (userId: string) => `nutrimatch.history.${userId}`;
 function readHistory(userId: string): ScanEntry[] {
   try {
     const raw = localStorage.getItem(historyKey(userId));
-    return raw ? (JSON.parse(raw) as ScanEntry[]) : [];
+    const parsed = raw ? (JSON.parse(raw) as unknown[]) : [];
+    // Drop entries saved before scans were keyed by barcode.
+    return (Array.isArray(parsed) ? parsed : []).filter(
+      (e): e is ScanEntry =>
+        !!e && typeof (e as ScanEntry).barcode === "string" && (e as ScanEntry).barcode.length > 0,
+    );
   } catch {
     return [];
   }
@@ -239,12 +252,17 @@ export function NutriMatchProvider({ children }: { children: ReactNode }) {
   }, [userId, profile.avatarPath, saveProfile]);
 
   const recordScan = useCallback(
-    (productId: string) => {
+    (entry: {
+      barcode: string;
+      name: string | null;
+      brand: string | null;
+      imageUrl: string | null;
+    }) => {
       if (!userId) return;
       setHistory((old) => {
         const next = [
-          { productId, goal: profile.goal, scannedAt: new Date().toISOString() },
-          ...old.filter((e) => e.productId !== productId),
+          { ...entry, goal: profile.goal, scannedAt: new Date().toISOString() },
+          ...old.filter((e) => e.barcode !== entry.barcode),
         ].slice(0, 25);
         localStorage.setItem(historyKey(userId), JSON.stringify(next));
         return next;
