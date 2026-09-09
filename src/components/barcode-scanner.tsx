@@ -175,6 +175,7 @@ export function BarcodeScanner({
           return;
         }
 
+        console.log("[scan] using zxing path");
         const lib = await import("@zxing/library");
         const reader = new lib.MultiFormatReader();
         reader.setHints(zxingHints(lib) as never);
@@ -220,9 +221,11 @@ export function BarcodeScanner({
               reader.reset();
             }
           }
+          console.log("[scan] tick no result", canvas.width, canvas.height);
           setDetecting(false);
         });
       } catch (err) {
+        console.log("[scan] start error", String(err));
         const name = (err as { name?: string })?.name ?? "";
         if (name === "NotAllowedError" || name === "SecurityError") setState("denied");
         else if (name === "NotFoundError" || name === "OverconstrainedError")
