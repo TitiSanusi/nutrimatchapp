@@ -1,8 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ScanLine, Search, ChevronRight } from "lucide-react";
-import { AppShell, MatchBadge, ProductTile } from "@/components/app-shell";
+import { ScanLine, Search, ChevronRight, ImageOff } from "lucide-react";
+import { AppShell } from "@/components/app-shell";
 import { Avatar } from "@/components/avatar";
-import { goals, matchProduct, productById } from "@/lib/nutrimatch";
+import { goals } from "@/lib/nutrimatch";
 import { firstName, useNutriMatch } from "@/lib/store";
 
 export const Route = createFileRoute("/_authenticated/home")({
@@ -12,12 +12,12 @@ export const Route = createFileRoute("/_authenticated/home")({
       {
         name: "description",
         content:
-          "Scan a packaged food to see how it matches your nutrition goal, or search for it by name.",
+          "Scan a packaged food barcode to pull up its real label information, or search for the product by name.",
       },
       { property: "og:title", content: "Home — NutriMatch" },
       {
         property: "og:description",
-        content: "Your goal, your recent scans, and one tap to scan the next product.",
+        content: "Your goals, your recent scans, and one tap to scan the next product.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -30,11 +30,7 @@ function HomePage() {
   const { profile, history, ready } = useNutriMatch();
   const myGoals = goals.filter((g) => profile.goals.includes(g.id));
   const first = firstName(profile.name);
-
-  const recent = history
-    .map((entry) => ({ entry, product: productById(entry.productId) }))
-    .filter((row) => row.product)
-    .slice(0, 3);
+  const recent = history.slice(0, 3);
 
   return (
     <AppShell>
@@ -53,9 +49,7 @@ function HomePage() {
       </div>
 
       <section className="card-soft mt-4 p-6">
-        <p className="eyebrow text-primary">
-          {myGoals.length > 1 ? "Your goals" : "Your goal"}
-        </p>
+        <p className="eyebrow text-primary">{myGoals.length > 1 ? "Your goals" : "Your goal"}</p>
         <ul className="mt-2 flex flex-wrap gap-2">
           {myGoals.map((g) => (
             <li
@@ -70,7 +64,7 @@ function HomePage() {
           What are you eating today?
         </h1>
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-          Scan a packaged food to see how it matches your goal.
+          Scan a packaged food to see what's really on the label.
         </p>
 
         <Link
@@ -78,14 +72,14 @@ function HomePage() {
           className="font-display mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
         >
           <ScanLine className="size-4.5" aria-hidden />
-          Scan Product
+          Scan a product
         </Link>
         <Link
           to="/search"
           className="font-display mt-3 flex w-full items-center justify-center gap-2 rounded-2xl border border-border bg-card py-4 text-sm font-semibold transition-colors hover:bg-surface"
         >
           <Search className="size-4.5" aria-hidden />
-          Search Product
+          Search for a product
         </Link>
       </section>
 
@@ -103,28 +97,40 @@ function HomePage() {
           </p>
         ) : (
           <ul className="mt-3 space-y-2.5">
-            {recent.map(({ entry, product }) => {
-              const match = matchProduct(product!, profile.goal);
-              return (
-                <li key={entry.productId}>
-                  <Link
-                    to="/product/$productId"
-                    params={{ productId: product!.id }}
-                    className="card-soft flex items-center gap-4 p-4 transition-shadow hover:shadow-lift"
-                  >
-                    <ProductTile emoji={product!.emoji} />
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-semibold">{product!.name}</span>
-                      <span className="mt-0.5 block truncate text-xs text-muted-foreground">
-                        {product!.brand} · {product!.serving}
-                      </span>
-                      <MatchBadge level={match.level} label={match.label} className="mt-2" />
+            {recent.map((entry) => (
+              <li key={entry.barcode}>
+                <Link
+                  to="/product/$barcode"
+                  params={{ barcode: entry.barcode }}
+                  className="card-soft flex items-center gap-4 p-4 transition-shadow hover:shadow-lift"
+                >
+                  {entry.imageUrl ? (
+                    <img
+                      src={entry.imageUrl}
+                      alt=""
+                      loading="lazy"
+                      className="size-14 shrink-0 rounded-2xl bg-surface object-contain ring-1 ring-border"
+                    />
+                  ) : (
+                    <span
+                      aria-hidden
+                      className="grid size-14 shrink-0 place-items-center rounded-2xl bg-surface ring-1 ring-border"
+                    >
+                      <ImageOff className="size-5 text-muted-foreground" />
                     </span>
-                    <ChevronRight className="size-4 shrink-0 text-muted-foreground" aria-hidden />
-                  </Link>
-                </li>
-              );
-            })}
+                  )}
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-semibold">
+                      {entry.name ?? `Barcode ${entry.barcode}`}
+                    </span>
+                    <span className="mt-0.5 block truncate text-xs text-muted-foreground">
+                      {entry.brand ?? "Brand unavailable"}
+                    </span>
+                  </span>
+                  <ChevronRight className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+                </Link>
+              </li>
+            ))}
           </ul>
         )}
       </section>
