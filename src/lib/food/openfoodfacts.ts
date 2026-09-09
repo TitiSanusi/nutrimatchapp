@@ -141,32 +141,50 @@ export const openFoodFacts: FoodProvider = {
   },
 
   async search(query: string, opts): Promise<FoodSearchResult[] | ProviderError> {
-    const params = new URLSearchParams({
-      search_terms: query,
-      json: "1",
-      page_size: "24",
-      fields: "code,product_name,brands,image_front_url,image_url",
-      // Global by default: no country filter unless one is passed in.
-      sort_by: "popularity_key",
+    const mapHit = (p: Record<string, unknown>): FoodSearchResult => ({
+      barcode: text(p["code"]) ?? "",
+      name: text(p["product_name"]) ?? (list(p["product_name"])[0] ?? null),
+      brand: text(p["brands"]) ?? (list(p["brands"])[0] ?? null),
+      imageUrl: text(p["image_front_url"]) ?? text(p["image_url"]),
     });
-    if (opts?.country) {
-      params.set("tagtype_0", "countries");
-      params.set("tag_contains_0", "contains");
-      params.set("tag_0", opts.country);
-    }
+
+    // Primary: the full-text search service (global by default).
     try {
+      const params = new URLSearchParams({
+        q: query,
+        page_size: "24",
+        fields: "code,product_name,brands,image_url",
+      });
+      if (opts?.country) params.set("countries_tags", opts.country.toLowerCase());
+      const json = (await getJson(`${SEARCH_BASE}/search?${params.toString()}`)) as {
+        hits?: Record<string, unknown>[];
+      };
+      const hits = Array.isArray(json.hits) ? json.hits : [];
+      const mapped = hits.map(mapHit).filter((p) => p.barcode && p.name);
+      if (mapped.length) return mapped;
+    } catch {
+      /* fall through to the legacy endpoint */
+    }
+
+    // Fallback: legacy search endpoint.
+    try {
+      const params = new URLSearchParams({
+        search_terms: query,
+        json: "1",
+        page_size: "24",
+        fields: "code,product_name,brands,image_front_url,image_url",
+        sort_by: "popularity_key",
+      });
+      if (opts?.country) {
+        params.set("tagtype_0", "countries");
+        params.set("tag_contains_0", "contains");
+        params.set("tag_0", opts.country);
+      }
       const json = (await getJson(`${BASE}/cgi/search.pl?${params.toString()}`)) as {
         products?: Record<string, unknown>[];
       };
       const products = Array.isArray(json.products) ? json.products : [];
-      return products
-        .map((p) => ({
-          barcode: text(p["code"]) ?? "",
-          name: text(p["product_name"]),
-          brand: text(p["brands"]),
-          imageUrl: text(p["image_front_url"]) ?? text(p["image_url"]),
-        }))
-        .filter((p) => p.barcode && p.name);
+      return products.map(mapHit).filter((p) => p.barcode && p.name);
     } catch {
       return { kind: "unavailable" };
     }
