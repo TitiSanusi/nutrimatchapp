@@ -7,6 +7,7 @@ import type {
 } from "./types";
 
 const BASE = "https://world.openfoodfacts.org";
+const SEARCH_BASE = "https://search.openfoodfacts.org";
 const UA = "NutriMatch/1.0 (https://eat-well-decoded.lovable.app)";
 const TIMEOUT_MS = 9000;
 
