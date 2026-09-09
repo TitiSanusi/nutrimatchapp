@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ChevronRight } from "lucide-react";
-import { AppShell, MatchBadge, ProductTile } from "@/components/app-shell";
-import { goals, matchProduct, productById } from "@/lib/nutrimatch";
+import { ChevronRight, ImageOff, ScanLine } from "lucide-react";
+import { AppShell } from "@/components/app-shell";
+import { goalById } from "@/lib/nutrimatch";
 import { useNutriMatch } from "@/lib/store";
 
 export const Route = createFileRoute("/_authenticated/history")({
@@ -10,12 +10,12 @@ export const Route = createFileRoute("/_authenticated/history")({
       { title: "Scan history — NutriMatch" },
       {
         name: "description",
-        content: "Every product you've scanned, when you scanned it, and how it matched your goal.",
+        content: "Every packaged food you've looked up, newest first, ready to open again.",
       },
       { property: "og:title", content: "Scan history — NutriMatch" },
       {
         property: "og:description",
-        content: "Reopen any previous scan to read the result again.",
+        content: "Come back to any product you've scanned before.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -24,70 +24,78 @@ export const Route = createFileRoute("/_authenticated/history")({
   component: HistoryPage,
 });
 
-const formatDate = (iso: string) =>
-  new Date(iso).toLocaleDateString(undefined, {
-    day: "numeric",
-    month: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-
 function HistoryPage() {
-  const { history, profile, ready, clearHistory } = useNutriMatch();
-
-  const rows = history
-    .map((entry) => ({ entry, product: productById(entry.productId) }))
-    .filter((row) => row.product);
+  const { history, clearHistory, ready } = useNutriMatch();
 
   return (
     <AppShell
-      title="Scan history"
-      subtitle="Open any scan to read the result again."
+      title="History"
+      subtitle="Products you've looked up."
       action={
-        rows.length > 0 ? (
+        history.length > 0 ? (
           <button
             onClick={clearHistory}
-            className="rounded-xl border border-border bg-card px-3.5 py-2 text-xs font-semibold transition-colors hover:bg-surface"
+            className="font-display rounded-full border border-border bg-card px-4 py-2 text-xs font-semibold transition-colors hover:bg-surface"
           >
             Clear
           </button>
         ) : undefined
       }
     >
-      {!ready ? null : rows.length === 0 ? (
-        <p className="card-soft p-5 text-sm text-muted-foreground">
-          Nothing here yet.{" "}
-          <Link to="/scan" className="font-medium text-primary">
-            Scan your first product
+      {!ready ? null : history.length === 0 ? (
+        <section className="card-soft p-6">
+          <ScanLine className="size-6 text-primary" aria-hidden />
+          <p className="mt-3 text-sm text-muted-foreground">
+            Nothing here yet. Scan a pack and it will show up in your history.
+          </p>
+          <Link
+            to="/scan"
+            className="font-display mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+          >
+            <ScanLine className="size-4.5" aria-hidden />
+            Scan a product
           </Link>
-          .
-        </p>
+        </section>
       ) : (
         <ul className="space-y-2.5">
-          {rows.map(({ entry, product }) => {
-            const match = matchProduct(product!, profile.goal);
-            const scannedGoal = goals.find((g) => g.id === entry.goal);
-            return (
-              <li key={`${entry.productId}-${entry.scannedAt}`}>
-                <Link
-                  to="/product/$productId"
-                  params={{ productId: product!.id }}
-                  className="card-soft flex items-center gap-4 p-4 transition-shadow hover:shadow-lift"
-                >
-                  <ProductTile emoji={product!.emoji} />
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-semibold">{product!.name}</span>
-                    <span className="mt-0.5 block truncate text-xs text-muted-foreground">
-                      {formatDate(entry.scannedAt)}
-                      {scannedGoal ? ` · scanned for ${scannedGoal.label.toLowerCase()}` : ""}
-                    </span>
-                    <MatchBadge level={match.level} label={match.label} className="mt-2" />
+          {history.map((entry) => (
+            <li key={`${entry.barcode}-${entry.scannedAt}`}>
+              <Link
+                to="/product/$barcode"
+                params={{ barcode: entry.barcode }}
+                className="card-soft flex items-center gap-4 p-4 transition-shadow hover:shadow-lift"
+              >
+                {entry.imageUrl ? (
+                  <img
+                    src={entry.imageUrl}
+                    alt=""
+                    loading="lazy"
+                    className="size-14 shrink-0 rounded-2xl bg-surface object-contain ring-1 ring-border"
+                  />
+                ) : (
+                  <span
+                    aria-hidden
+                    className="grid size-14 shrink-0 place-items-center rounded-2xl bg-surface ring-1 ring-border"
+                  >
+                    <ImageOff className="size-5 text-muted-foreground" />
                   </span>
-                  <ChevronRight className="size-4 shrink-0 text-muted-foreground" aria-hidden />
-                </Link>
-              </li>
-            );
-          })}
+                )}
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-sm font-semibold">
+                    {entry.name ?? `Barcode ${entry.barcode}`}
+                  </span>
+                  <span className="mt-0.5 block truncate text-xs text-muted-foreground">
+                    {entry.brand ?? "Brand unavailable"}
+                  </span>
+                  <span className="mt-1 block text-xs text-muted-foreground">
+                    {new Date(entry.scannedAt).toLocaleDateString()} ·{" "}
+                    {goalById(entry.goal)?.label ?? "Your goal"}
+                  </span>
+                </span>
+                <ChevronRight className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+              </Link>
+            </li>
+          ))}
         </ul>
       )}
     </AppShell>

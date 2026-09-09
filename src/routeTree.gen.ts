@@ -19,6 +19,7 @@ import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authentic
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedScanRouteImport } from './routes/_authenticated/scan'
 import { Route as AuthenticatedSearchRouteImport } from './routes/_authenticated/search'
+import { Route as AuthenticatedContributeBarcodeRouteImport } from './routes/_authenticated/contribute.$barcode'
 import { Route as AuthenticatedProductBarcodeRouteImport } from './routes/_authenticated/product.$barcode'
 import { Route as AuthenticatedProductProductIdRouteImport } from './routes/_authenticated/product.$productId'
 
@@ -71,6 +72,12 @@ const AuthenticatedSearchRoute = AuthenticatedSearchRouteImport.update({
   path: '/search',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedContributeBarcodeRoute =
+  AuthenticatedContributeBarcodeRouteImport.update({
+    id: '/contribute/$barcode',
+    path: '/contribute/$barcode',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedProductBarcodeRoute =
   AuthenticatedProductBarcodeRouteImport.update({
     id: '/product/$barcode',
@@ -94,6 +101,7 @@ export interface FileRoutesByFullPath {
   '/profile': typeof AuthenticatedProfileRoute
   '/scan': typeof AuthenticatedScanRoute
   '/search': typeof AuthenticatedSearchRoute
+  '/contribute/$barcode': typeof AuthenticatedContributeBarcodeRoute
   '/product/$barcode': typeof AuthenticatedProductBarcodeRoute
   '/product/$productId': typeof AuthenticatedProductProductIdRoute
 }
@@ -107,6 +115,7 @@ export interface FileRoutesByTo {
   '/profile': typeof AuthenticatedProfileRoute
   '/scan': typeof AuthenticatedScanRoute
   '/search': typeof AuthenticatedSearchRoute
+  '/contribute/$barcode': typeof AuthenticatedContributeBarcodeRoute
   '/product/$barcode': typeof AuthenticatedProductBarcodeRoute
   '/product/$productId': typeof AuthenticatedProductProductIdRoute
 }
@@ -122,6 +131,7 @@ export interface FileRoutesById {
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/scan': typeof AuthenticatedScanRoute
   '/_authenticated/search': typeof AuthenticatedSearchRoute
+  '/_authenticated/contribute/$barcode': typeof AuthenticatedContributeBarcodeRoute
   '/_authenticated/product/$barcode': typeof AuthenticatedProductBarcodeRoute
   '/_authenticated/product/$productId': typeof AuthenticatedProductProductIdRoute
 }
@@ -137,6 +147,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/scan'
     | '/search'
+    | '/contribute/$barcode'
     | '/product/$barcode'
     | '/product/$productId'
   fileRoutesByTo: FileRoutesByTo
@@ -150,6 +161,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/scan'
     | '/search'
+    | '/contribute/$barcode'
     | '/product/$barcode'
     | '/product/$productId'
   id:
@@ -164,6 +176,7 @@ export interface FileRouteTypes {
     | '/_authenticated/profile'
     | '/_authenticated/scan'
     | '/_authenticated/search'
+    | '/_authenticated/contribute/$barcode'
     | '/_authenticated/product/$barcode'
     | '/_authenticated/product/$productId'
   fileRoutesById: FileRoutesById
@@ -247,6 +260,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSearchRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/contribute/$barcode': {
+      id: '/_authenticated/contribute/$barcode'
+      path: '/contribute/$barcode'
+      fullPath: '/contribute/$barcode'
+      preLoaderRoute: typeof AuthenticatedContributeBarcodeRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/product/$barcode': {
       id: '/_authenticated/product/$barcode'
       path: '/product/$barcode'
@@ -271,6 +291,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedScanRoute: typeof AuthenticatedScanRoute
   AuthenticatedSearchRoute: typeof AuthenticatedSearchRoute
+  AuthenticatedContributeBarcodeRoute: typeof AuthenticatedContributeBarcodeRoute
   AuthenticatedProductBarcodeRoute: typeof AuthenticatedProductBarcodeRoute
   AuthenticatedProductProductIdRoute: typeof AuthenticatedProductProductIdRoute
 }
@@ -282,6 +303,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedScanRoute: AuthenticatedScanRoute,
   AuthenticatedSearchRoute: AuthenticatedSearchRoute,
+  AuthenticatedContributeBarcodeRoute: AuthenticatedContributeBarcodeRoute,
   AuthenticatedProductBarcodeRoute: AuthenticatedProductBarcodeRoute,
   AuthenticatedProductProductIdRoute: AuthenticatedProductProductIdRoute,
 }
