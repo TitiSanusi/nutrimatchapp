@@ -134,6 +134,7 @@ export function BarcodeScanner({
         video.addEventListener("loadeddata", done, { once: true });
         setTimeout(done, 2500);
       });
+      console.log("[scan] video", video.readyState, video.paused, video.videoWidth, JSON.stringify(track?.getSettings?.() ?? {}), stream.getVideoTracks().length, stream.getVideoTracks()[0]?.readyState);
       return video;
     };
 
