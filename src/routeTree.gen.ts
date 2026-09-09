@@ -19,6 +19,7 @@ import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authentic
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedScanRouteImport } from './routes/_authenticated/scan'
 import { Route as AuthenticatedSearchRouteImport } from './routes/_authenticated/search'
+import { Route as AuthenticatedProductBarcodeRouteImport } from './routes/_authenticated/product.$barcode'
 import { Route as AuthenticatedProductProductIdRouteImport } from './routes/_authenticated/product.$productId'
 
 const IndexRoute = IndexRouteImport.update({
@@ -70,6 +71,12 @@ const AuthenticatedSearchRoute = AuthenticatedSearchRouteImport.update({
   path: '/search',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedProductBarcodeRoute =
+  AuthenticatedProductBarcodeRouteImport.update({
+    id: '/product/$barcode',
+    path: '/product/$barcode',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedProductProductIdRoute =
   AuthenticatedProductProductIdRouteImport.update({
     id: '/product/$productId',
@@ -87,6 +94,7 @@ export interface FileRoutesByFullPath {
   '/profile': typeof AuthenticatedProfileRoute
   '/scan': typeof AuthenticatedScanRoute
   '/search': typeof AuthenticatedSearchRoute
+  '/product/$barcode': typeof AuthenticatedProductBarcodeRoute
   '/product/$productId': typeof AuthenticatedProductProductIdRoute
 }
 export interface FileRoutesByTo {
@@ -99,6 +107,7 @@ export interface FileRoutesByTo {
   '/profile': typeof AuthenticatedProfileRoute
   '/scan': typeof AuthenticatedScanRoute
   '/search': typeof AuthenticatedSearchRoute
+  '/product/$barcode': typeof AuthenticatedProductBarcodeRoute
   '/product/$productId': typeof AuthenticatedProductProductIdRoute
 }
 export interface FileRoutesById {
@@ -113,6 +122,7 @@ export interface FileRoutesById {
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/scan': typeof AuthenticatedScanRoute
   '/_authenticated/search': typeof AuthenticatedSearchRoute
+  '/_authenticated/product/$barcode': typeof AuthenticatedProductBarcodeRoute
   '/_authenticated/product/$productId': typeof AuthenticatedProductProductIdRoute
 }
 export interface FileRouteTypes {
@@ -127,6 +137,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/scan'
     | '/search'
+    | '/product/$barcode'
     | '/product/$productId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -139,6 +150,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/scan'
     | '/search'
+    | '/product/$barcode'
     | '/product/$productId'
   id:
     | '__root__'
@@ -152,6 +164,7 @@ export interface FileRouteTypes {
     | '/_authenticated/profile'
     | '/_authenticated/scan'
     | '/_authenticated/search'
+    | '/_authenticated/product/$barcode'
     | '/_authenticated/product/$productId'
   fileRoutesById: FileRoutesById
 }
@@ -234,6 +247,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSearchRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/product/$barcode': {
+      id: '/_authenticated/product/$barcode'
+      path: '/product/$barcode'
+      fullPath: '/product/$barcode'
+      preLoaderRoute: typeof AuthenticatedProductBarcodeRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/product/$productId': {
       id: '/_authenticated/product/$productId'
       path: '/product/$productId'
@@ -251,6 +271,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedScanRoute: typeof AuthenticatedScanRoute
   AuthenticatedSearchRoute: typeof AuthenticatedSearchRoute
+  AuthenticatedProductBarcodeRoute: typeof AuthenticatedProductBarcodeRoute
   AuthenticatedProductProductIdRoute: typeof AuthenticatedProductProductIdRoute
 }
 
@@ -261,6 +282,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedScanRoute: AuthenticatedScanRoute,
   AuthenticatedSearchRoute: AuthenticatedSearchRoute,
+  AuthenticatedProductBarcodeRoute: AuthenticatedProductBarcodeRoute,
   AuthenticatedProductProductIdRoute: AuthenticatedProductProductIdRoute,
 }
 
