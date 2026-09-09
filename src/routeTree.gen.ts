@@ -21,7 +21,6 @@ import { Route as AuthenticatedScanRouteImport } from './routes/_authenticated/s
 import { Route as AuthenticatedSearchRouteImport } from './routes/_authenticated/search'
 import { Route as AuthenticatedContributeBarcodeRouteImport } from './routes/_authenticated/contribute.$barcode'
 import { Route as AuthenticatedProductBarcodeRouteImport } from './routes/_authenticated/product.$barcode'
-import { Route as AuthenticatedProductProductIdRouteImport } from './routes/_authenticated/product.$productId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -84,12 +83,6 @@ const AuthenticatedProductBarcodeRoute =
     path: '/product/$barcode',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedProductProductIdRoute =
-  AuthenticatedProductProductIdRouteImport.update({
-    id: '/product/$productId',
-    path: '/product/$productId',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -103,7 +96,6 @@ export interface FileRoutesByFullPath {
   '/search': typeof AuthenticatedSearchRoute
   '/contribute/$barcode': typeof AuthenticatedContributeBarcodeRoute
   '/product/$barcode': typeof AuthenticatedProductBarcodeRoute
-  '/product/$productId': typeof AuthenticatedProductProductIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -117,7 +109,6 @@ export interface FileRoutesByTo {
   '/search': typeof AuthenticatedSearchRoute
   '/contribute/$barcode': typeof AuthenticatedContributeBarcodeRoute
   '/product/$barcode': typeof AuthenticatedProductBarcodeRoute
-  '/product/$productId': typeof AuthenticatedProductProductIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -133,7 +124,6 @@ export interface FileRoutesById {
   '/_authenticated/search': typeof AuthenticatedSearchRoute
   '/_authenticated/contribute/$barcode': typeof AuthenticatedContributeBarcodeRoute
   '/_authenticated/product/$barcode': typeof AuthenticatedProductBarcodeRoute
-  '/_authenticated/product/$productId': typeof AuthenticatedProductProductIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -149,7 +139,6 @@ export interface FileRouteTypes {
     | '/search'
     | '/contribute/$barcode'
     | '/product/$barcode'
-    | '/product/$productId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -163,7 +152,6 @@ export interface FileRouteTypes {
     | '/search'
     | '/contribute/$barcode'
     | '/product/$barcode'
-    | '/product/$productId'
   id:
     | '__root__'
     | '/'
@@ -178,7 +166,6 @@ export interface FileRouteTypes {
     | '/_authenticated/search'
     | '/_authenticated/contribute/$barcode'
     | '/_authenticated/product/$barcode'
-    | '/_authenticated/product/$productId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -274,13 +261,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProductBarcodeRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/product/$productId': {
-      id: '/_authenticated/product/$productId'
-      path: '/product/$productId'
-      fullPath: '/product/$productId'
-      preLoaderRoute: typeof AuthenticatedProductProductIdRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
   }
 }
 
@@ -293,7 +273,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSearchRoute: typeof AuthenticatedSearchRoute
   AuthenticatedContributeBarcodeRoute: typeof AuthenticatedContributeBarcodeRoute
   AuthenticatedProductBarcodeRoute: typeof AuthenticatedProductBarcodeRoute
-  AuthenticatedProductProductIdRoute: typeof AuthenticatedProductProductIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -305,7 +284,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSearchRoute: AuthenticatedSearchRoute,
   AuthenticatedContributeBarcodeRoute: AuthenticatedContributeBarcodeRoute,
   AuthenticatedProductBarcodeRoute: AuthenticatedProductBarcodeRoute,
-  AuthenticatedProductProductIdRoute: AuthenticatedProductProductIdRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
