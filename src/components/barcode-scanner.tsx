@@ -119,8 +119,8 @@ export function BarcodeScanner({
       try {
         // Continuous autofocus where the browser supports it (Android Chrome).
         await track?.applyConstraints({
-          advanced: [{ focusMode: "continuous" }, { zoom: 1 }],
-        } as MediaTrackConstraints);
+          advanced: [{ focusMode: "continuous" }],
+        } as unknown as MediaTrackConstraints);
       } catch {
         /* optional */
       }
