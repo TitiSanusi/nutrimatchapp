@@ -166,7 +166,6 @@ export function BarcodeScanner({
           }
         }
 
-        console.log("[scan] native?", !!Ctor, !!native);
         if (native) {
           const detector = native;
           runLoop(async () => {
@@ -178,7 +177,6 @@ export function BarcodeScanner({
           return;
         }
 
-        console.log("[scan] using zxing path");
         const lib = await import("@zxing/library");
         const reader = new lib.MultiFormatReader();
         reader.setHints(zxingHints(lib) as never);
@@ -186,8 +184,9 @@ export function BarcodeScanner({
 
         runLoop(async () => {
           const canvas = canvasRef.current;
-          console.log("[scan] tick", !!canvas, video.videoWidth, video.videoHeight);
-          if (!canvas || !video.videoWidth) return;
+          if (!canvas) return;
+          if (video.paused) await video.play().catch(() => undefined);
+          if (!video.videoWidth) return;
           const ctx = canvas.getContext("2d", { willReadFrequently: true });
           if (!ctx) return;
 
