@@ -1,7 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { History, Home, ScanLine, User } from "lucide-react";
 import type { ReactNode } from "react";
-import { cn } from "@/lib/utils";
 
 const navItems = [
   { to: "/home", label: "Home", icon: Home },
