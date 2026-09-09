@@ -81,7 +81,12 @@ const historyKey = (userId: string) => `nutrimatch.history.${userId}`;
 function readHistory(userId: string): ScanEntry[] {
   try {
     const raw = localStorage.getItem(historyKey(userId));
-    return raw ? (JSON.parse(raw) as ScanEntry[]) : [];
+    const parsed = raw ? (JSON.parse(raw) as unknown[]) : [];
+    // Drop entries saved before scans were keyed by barcode.
+    return (Array.isArray(parsed) ? parsed : []).filter(
+      (e): e is ScanEntry =>
+        !!e && typeof (e as ScanEntry).barcode === "string" && (e as ScanEntry).barcode.length > 0,
+    );
   } catch {
     return [];
   }
