@@ -46,7 +46,7 @@ function ScanPage() {
       {handling && (
         <p className="mt-4 flex items-center justify-center gap-2 text-sm text-muted-foreground">
           <Loader2 className="size-4 animate-spin" aria-hidden />
-          Looking up this product…
+          Finding your product…
         </p>
       )}
 
@@ -96,7 +96,7 @@ function ScanPage() {
           className="font-display mt-4 flex w-full items-center justify-center gap-2 rounded-2xl border border-border bg-card py-3.5 text-sm font-semibold transition-colors hover:bg-surface"
         >
           <Search className="size-4.5" aria-hidden />
-          Search for a product
+          Search manually instead
         </Link>
       </div>
     </AppShell>
