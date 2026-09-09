@@ -1,5 +1,10 @@
 import { openFoodFacts } from "./openfoodfacts";
-import type { FoodProvider, LookupOutcome, SearchOutcome } from "./types";
+import type {
+  FoodProvider,
+  FoodSearchResult,
+  LookupOutcome,
+  SearchOutcome,
+} from "./types";
 
 /**
  * Provider registry. Add another food database here (and only here) —
