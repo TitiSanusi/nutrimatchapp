@@ -33,7 +33,7 @@ export async function searchFoods(query: string, country?: string): Promise<Sear
 
   let unavailable = false;
   const seen = new Set<string>();
-  const results: SearchOutcome extends { results: infer R } ? R : never = [] as never;
+  const results: FoodSearchResult[] = [];
 
   for (const provider of providers) {
     const res = await provider.search(q, country ? { country } : undefined);
