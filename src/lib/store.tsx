@@ -247,12 +247,17 @@ export function NutriMatchProvider({ children }: { children: ReactNode }) {
   }, [userId, profile.avatarPath, saveProfile]);
 
   const recordScan = useCallback(
-    (productId: string) => {
+    (entry: {
+      barcode: string;
+      name: string | null;
+      brand: string | null;
+      imageUrl: string | null;
+    }) => {
       if (!userId) return;
       setHistory((old) => {
         const next = [
-          { productId, goal: profile.goal, scannedAt: new Date().toISOString() },
-          ...old.filter((e) => e.productId !== productId),
+          { ...entry, goal: profile.goal, scannedAt: new Date().toISOString() },
+          ...old.filter((e) => e.barcode !== entry.barcode),
         ].slice(0, 25);
         localStorage.setItem(historyKey(userId), JSON.stringify(next));
         return next;
