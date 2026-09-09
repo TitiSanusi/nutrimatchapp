@@ -14,6 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
+      product_submissions: {
+        Row: {
+          barcode: string
+          brand: string | null
+          created_at: string
+          front_photo_path: string | null
+          id: string
+          ingredients_photo_path: string | null
+          notes: string | null
+          nutrition_photo_path: string | null
+          product_name: string | null
+          source: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          barcode: string
+          brand?: string | null
+          created_at?: string
+          front_photo_path?: string | null
+          id?: string
+          ingredients_photo_path?: string | null
+          notes?: string | null
+          nutrition_photo_path?: string | null
+          product_name?: string | null
+          source?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          barcode?: string
+          brand?: string | null
+          created_at?: string
+          front_photo_path?: string | null
+          id?: string
+          ingredients_photo_path?: string | null
+          notes?: string | null
+          nutrition_photo_path?: string | null
+          product_name?: string | null
+          source?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           age: number | null
