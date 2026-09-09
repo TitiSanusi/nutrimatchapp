@@ -184,6 +184,7 @@ export function BarcodeScanner({
 
         runLoop(async () => {
           const canvas = canvasRef.current;
+          console.log("[scan] tick", !!canvas, video.videoWidth, video.videoHeight);
           if (!canvas || !video.videoWidth) return;
           const ctx = canvas.getContext("2d", { willReadFrequently: true });
           if (!ctx) return;
