@@ -1,11 +1,11 @@
 import { describe, expect, test } from "bun:test";
-import type { FoodProduct, NutrientValues } from "./food/types";
+import type { FoodProduct, NutrientValues } from "../src/lib/food/types";
 import {
   analyzeProductFit,
   halfPortion,
   parseServingAmount,
   resolveServingNutrition,
-} from "./product-fit";
+} from "../src/lib/product-fit";
 
 function product(
   per100g: NutrientValues,
