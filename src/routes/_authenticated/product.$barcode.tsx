@@ -284,11 +284,11 @@ function Found({ product }: { product: FoodProduct }) {
         </div>
         {analysis.goals.length > 1 && analysis.keyFacts.length > 1 && (
           <div className="mt-5 border-t border-border pt-5">
-            <h3 className="font-display text-sm font-semibold">The trade-offs in one serving</h3>
+            <h3 className="font-display text-sm font-semibold">Your goal trade-offs</h3>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-              Your goals bring different parts of the same label into focus. This product provides{" "}
-              {formatEvidenceList(analysis.keyFacts)}. NutriMatch is showing these together without
-              deciding which goal should outweigh another.
+              Your goals bring different parts of the same label into focus. On the bases shown
+              below, this product provides {formatEvidenceList(analysis.keyFacts)}. NutriMatch is
+              showing these together without deciding which goal should outweigh another.
             </p>
           </div>
         )}
