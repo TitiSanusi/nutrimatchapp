@@ -2,11 +2,28 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { AlertTriangle, ArrowLeft, ImageOff, PackageSearch, RefreshCw, Search } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowLeft,
+  Check,
+  ImageOff,
+  Info,
+  PackageSearch,
+  RefreshCw,
+  Scale,
+  Search,
+  Target,
+} from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { lookupProduct } from "@/lib/food.functions";
 import { nutrientLabels, nutrientOrder, type FoodProduct, type NutrientKey } from "@/lib/food/types";
 import { goalById, goalNutrients } from "@/lib/nutrimatch";
+import {
+  analyzeProductFit,
+  halfPortion,
+  type GoalEvidence,
+  type NutrientEvidence,
+} from "@/lib/product-fit";
 import { useNutriMatch } from "@/lib/store";
 
 export const Route = createFileRoute("/_authenticated/product/$barcode")({
@@ -174,6 +191,8 @@ function Found({ product }: { product: FoodProduct }) {
   );
 
   const myGoals = profile.goals.length ? profile.goals : [profile.goal];
+  const analysis = analyzeProductFit(product, myGoals);
+  const hasLimitedGoalData = analysis.relevantAvailableCount < analysis.relevantExpectedCount;
 
   return (
     <>
@@ -217,6 +236,91 @@ function Found({ product }: { product: FoodProduct }) {
           unavailable — we never estimate them.
         </p>
       </section>
+
+      <section className="card-soft mt-4 overflow-hidden">
+        <div className="bg-strong-soft p-6">
+          <div className="flex items-start justify-between gap-5">
+            <div className="min-w-0">
+              <p className="eyebrow text-strong">NutriMatch fit</p>
+              <h2 className="font-display mt-2 text-xl font-semibold">Not yet classified</h2>
+              <p className="mt-2 max-w-lg text-sm leading-relaxed text-muted-foreground">
+                We’re waiting for NutriMatch’s evidence-based evaluation rules before assigning an
+                Excellent, Good, Moderate, Poor, or Very Poor fit.
+              </p>
+            </div>
+            <div className="shrink-0 rounded-xl border border-strong/20 bg-card px-3 py-2 text-center">
+              <span className="font-display block text-xl font-semibold text-muted-foreground">—</span>
+              <span className="block text-[10px] font-semibold text-muted-foreground">/ 100 later</span>
+            </div>
+          </div>
+        </div>
+        <div className="border-t border-border p-6">
+          <div className="flex gap-3">
+            <Info className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden />
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              No hidden score or nutrition thresholds have been applied. The facts below come from
+              this product’s available label data.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section className="card-soft mt-4 p-6">
+        <p className="eyebrow text-primary">How it fits your goals</p>
+        <h2 className="font-display mt-2 text-lg font-semibold">A separate view for every goal</h2>
+        <div className="mt-5 space-y-4">
+          {analysis.goals.map((goal) => (
+            <GoalEvidenceCard key={goal.goalId} goal={goal} />
+          ))}
+        </div>
+        {analysis.goals.length > 1 && analysis.keyFacts.length > 1 && (
+          <div className="mt-5 border-t border-border pt-5">
+            <h3 className="font-display text-sm font-semibold">The trade-offs in one serving</h3>
+            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+              Your goals bring different parts of the same label into focus. This product provides{" "}
+              {formatEvidenceList(analysis.keyFacts)}. NutriMatch is showing these together without
+              deciding which goal should outweigh another.
+            </p>
+          </div>
+        )}
+      </section>
+
+      <section className="card-soft mt-4 p-6">
+        <p className="eyebrow text-primary">Why these details</p>
+        <h2 className="font-display mt-2 text-lg font-semibold">Goal-relevant label facts</h2>
+        {analysis.keyFacts.length ? (
+          <ul className="mt-4 grid gap-3 sm:grid-cols-3">
+            {analysis.keyFacts.map((fact) => (
+              <li key={fact.key} className="rounded-xl bg-surface p-4">
+                <p className="text-xs text-muted-foreground">{fact.label}</p>
+                <p className="font-display mt-1 text-lg font-semibold tabular-nums">
+                  {fact.value} {fact.unit}
+                </p>
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  {fact.basis === "perServing" ? "Per serving" : "Per 100 g/ml"}
+                  {fact.derived ? " · calculated from serving size" : ""}
+                </p>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+            This product does not include the nutrition fields needed to explain your selected goals.
+          </p>
+        )}
+        {hasLimitedGoalData && (
+          <div className="mt-4 flex gap-3 rounded-xl bg-gentle-soft p-4">
+            <AlertTriangle className="mt-0.5 size-4 shrink-0 text-gentle" aria-hidden />
+            <p className="text-sm leading-relaxed">
+              <span className="font-semibold">Limited nutrition data.</span>{" "}
+              We can show {analysis.relevantAvailableCount} of {analysis.relevantExpectedCount} relevant
+              label details, so we can’t fully evaluate this product yet.
+            </p>
+          </div>
+        )}
+      </section>
+
+      <PortionComparison analysis={analysis} servingSize={product.servingSize} />
 
       <section className="card-soft mt-4 p-6">
         <h2 className="font-display text-sm font-semibold">Nutrition facts</h2>
@@ -270,36 +374,13 @@ function Found({ product }: { product: FoodProduct }) {
       </section>
 
       <section className="card-soft mt-4 p-6">
-        <p className="eyebrow text-primary">Your goals</p>
-        <h2 className="font-display mt-2 text-sm font-semibold">
-          The numbers that matter for you
-        </h2>
-        <p className="mt-1.5 text-sm text-muted-foreground">
-          Personalized guidance is coming next. For now, here's what this label says about the
-          nutrients tied to your goals.
+        <p className="eyebrow text-primary">Want a better fit?</p>
+        <h2 className="font-display mt-2 text-lg font-semibold">Compare like with like</h2>
+        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+          When comparing similar products, use the same basis — per serving or per 100 g/ml — and
+          compare the label fields tied to your goals: {comparisonLabels(myGoals)}. A future approved
+          method will determine how those differences affect the fit category.
         </p>
-        <ul className="mt-4 space-y-4">
-          {myGoals.map((goalId) => {
-            const goal = goalById(goalId);
-            if (!goal) return null;
-            return (
-              <li key={goalId}>
-                <p className="text-sm font-semibold">{goal.label}</p>
-                <ul className="mt-1.5 space-y-1">
-                  {goalNutrients[goalId].map((key) => (
-                    <li
-                      key={key}
-                      className="flex justify-between gap-4 text-sm text-muted-foreground"
-                    >
-                      <span>{nutrientLabels[key].label} (per 100 g/ml)</span>
-                      <span className="tabular-nums">{format(key, per100[key])}</span>
-                    </li>
-                  ))}
-                </ul>
-              </li>
-            );
-          })}
-        </ul>
       </section>
 
       <div className="mt-4 flex flex-col gap-2 sm:flex-row">
@@ -318,6 +399,124 @@ function Found({ product }: { product: FoodProduct }) {
       </div>
     </>
   );
+}
+
+function formatEvidence(fact: NutrientEvidence) {
+  return `${fact.value} ${fact.unit} ${fact.label.toLowerCase()}`;
+}
+
+function formatEvidenceList(facts: NutrientEvidence[]) {
+  const formatted = facts.map(formatEvidence);
+  if (formatted.length < 2) return formatted[0] ?? "no relevant listed nutrients";
+  return `${formatted.slice(0, -1).join(", ")} and ${formatted.at(-1)}`;
+}
+
+function GoalEvidenceCard({ goal }: { goal: GoalEvidence }) {
+  return (
+    <article className="rounded-xl border border-border p-4">
+      <div className="flex items-center gap-2">
+        <Target className="size-4 text-primary" aria-hidden />
+        <h3 className="font-display text-sm font-semibold">{goal.goalLabel}</h3>
+      </div>
+      {goal.available.length ? (
+        <>
+          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+            For this goal, the label reports {formatEvidenceList(goal.available)}.
+          </p>
+          <ul className="mt-3 space-y-2">
+            {goal.available.map((fact) => (
+              <li key={fact.key} className="flex items-center justify-between gap-4 text-sm">
+                <span className="flex items-center gap-2 text-muted-foreground">
+                  <Check className="size-3.5 text-strong" aria-hidden />
+                  {fact.label}
+                </span>
+                <span className="font-medium tabular-nums">
+                  {fact.value} {fact.unit}
+                  <span className="ml-1 text-xs font-normal text-muted-foreground">
+                    {fact.basis === "perServing" ? "/ serving" : "/ 100 g/ml"}
+                  </span>
+                </span>
+              </li>
+            ))}
+          </ul>
+        </>
+      ) : (
+        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+          The relevant nutrition fields for this goal are not listed, so NutriMatch won’t infer them.
+        </p>
+      )}
+      {goal.missing.length > 0 && (
+        <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
+          Not available: {goal.missing.map((key) => nutrientLabels[key].label).join(", ")}.
+        </p>
+      )}
+    </article>
+  );
+}
+
+function PortionComparison({
+  analysis,
+  servingSize,
+}: {
+  analysis: ReturnType<typeof analyzeProductFit>;
+  servingSize: string | null;
+}) {
+  const facts = analysis.keyFacts.filter((fact) => fact.basis === "perServing").slice(0, 3);
+  if (!facts.length) {
+    return (
+      <section className="card-soft mt-4 p-6">
+        <Scale className="size-5 text-primary" aria-hidden />
+        <h2 className="font-display mt-3 text-lg font-semibold">Considering a smaller portion?</h2>
+        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+          We can’t calculate a portion comparison because this product does not provide enough
+          serving information. NutriMatch won’t guess a serving size.
+        </p>
+      </section>
+    );
+  }
+
+  const servingLabel = servingSize ?? "1 serving";
+  const halfLabel = analysis.serving.amount && analysis.serving.unit
+    ? `${analysis.serving.amount / 2} ${analysis.serving.unit}`
+    : "½ serving";
+
+  return (
+    <section className="card-soft mt-4 p-6">
+      <Scale className="size-5 text-primary" aria-hidden />
+      <h2 className="font-display mt-3 text-lg font-semibold">Considering a smaller portion?</h2>
+      <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+        A half portion contains half of each listed amount. This comparison is mathematical, not a
+        recommendation or a promise of a health outcome.
+      </p>
+      <div className="mt-5 grid grid-cols-2 overflow-hidden rounded-xl border border-border">
+        <div className="border-r border-border bg-surface p-4">
+          <p className="text-xs text-muted-foreground">Full serving</p>
+          <p className="mt-1 text-sm font-semibold">{servingLabel}</p>
+          <ul className="mt-3 space-y-1.5 text-xs text-muted-foreground">
+            {facts.map((fact) => (
+              <li key={fact.key}>{fact.value} {fact.unit} {fact.label.toLowerCase()}</li>
+            ))}
+          </ul>
+        </div>
+        <div className="p-4">
+          <p className="text-xs text-muted-foreground">Half portion</p>
+          <p className="mt-1 text-sm font-semibold">{halfLabel}</p>
+          <ul className="mt-3 space-y-1.5 text-xs text-muted-foreground">
+            {facts.map((fact) => (
+              <li key={fact.key}>≈ {halfPortion(fact.value)} {fact.unit} {fact.label.toLowerCase()}</li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function comparisonLabels(goalIds: Parameters<typeof analyzeProductFit>[1]) {
+  const labels = [...new Set(goalIds.flatMap((id) => goalNutrients[id]))]
+    .map((key) => nutrientLabels[key].label.toLowerCase());
+  if (labels.length < 2) return labels[0] ?? "the available nutrients";
+  return `${labels.slice(0, -1).join(", ")} and ${labels.at(-1)}`;
 }
 
 function Field({ label, value }: { label: string; value: string | null }) {
