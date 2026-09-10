@@ -22,7 +22,7 @@ import {
   type FoodProduct,
   type NutrientKey,
 } from "@/lib/food/types";
-import { goalById, goalNutrients } from "@/lib/nutrimatch";
+import { goalNutrients } from "@/lib/nutrimatch";
 import {
   analyzeProductFit,
   halfPortion,
@@ -477,7 +477,8 @@ function PortionComparison({
     return (
       <section className="card-soft mt-4 p-6">
         <Scale className="size-5 text-primary" aria-hidden />
-        <h2 className="font-display mt-3 text-lg font-semibold">Considering a smaller portion?</h2>
+        <p className="eyebrow mt-3 text-primary">Still want it?</p>
+        <h2 className="font-display mt-2 text-lg font-semibold">A portion comparison</h2>
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
           We can’t calculate a portion comparison because this product does not provide enough
           serving information. NutriMatch won’t guess a serving size.
@@ -495,7 +496,8 @@ function PortionComparison({
   return (
     <section className="card-soft mt-4 p-6">
       <Scale className="size-5 text-primary" aria-hidden />
-      <h2 className="font-display mt-3 text-lg font-semibold">Considering a smaller portion?</h2>
+      <p className="eyebrow mt-3 text-primary">Still want it?</p>
+      <h2 className="font-display mt-2 text-lg font-semibold">A portion comparison</h2>
       <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
         A half portion contains half of each listed amount. This comparison is mathematical, not a
         recommendation or a promise of a health outcome.
