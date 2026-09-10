@@ -1,6 +1,11 @@
 import { describe, expect, test } from "bun:test";
 import type { FoodProduct, NutrientValues } from "./food/types";
-import { analyzeProductFit, halfPortion, parseServingAmount, resolveServingNutrition } from "./product-fit";
+import {
+  analyzeProductFit,
+  halfPortion,
+  parseServingAmount,
+  resolveServingNutrition,
+} from "./product-fit";
 
 function product(
   per100g: NutrientValues,
@@ -39,7 +44,9 @@ describe("serving calculations", () => {
   });
 
   test("prefers reported serving values and derives only missing values", () => {
-    const result = resolveServingNutrition(product({ sugars: 20, protein: 10 }, { sugars: 7 }, "40 g"));
+    const result = resolveServingNutrition(
+      product({ sugars: 20, protein: 10 }, { sugars: 7 }, "40 g"),
+    );
     expect(result.values.sugars).toBe(7);
     expect(result.values.protein).toBe(4);
     expect(result.derivedKeys).toEqual(["protein"]);
