@@ -56,9 +56,7 @@ export function parseServingAmount(
   servingSize: string | null,
 ): { amount: number; unit: "g" | "ml" } | null {
   if (!servingSize) return null;
-  const matches = [
-    ...servingSize.matchAll(/(\d+(?:[.,]\d+)?)\s*(g|ml)\b/gi),
-  ];
+  const matches = [...servingSize.matchAll(/(\d+(?:[.,]\d+)?)\s*(g|ml)\b/gi)];
   if (matches.length !== 1) return null;
   const amount = Number(matches[0]?.[1]?.replace(",", "."));
   const unit = matches[0]?.[2]?.toLowerCase();
@@ -122,7 +120,10 @@ function evidenceFor(
   };
 }
 
-export function analyzeProductFit(product: FoodProduct, selectedGoals: GoalId[]): ProductFitAnalysis {
+export function analyzeProductFit(
+  product: FoodProduct,
+  selectedGoals: GoalId[],
+): ProductFitAnalysis {
   const serving = resolveServingNutrition(product);
   const goals = selectedGoals.map((goalId): GoalEvidence => {
     const keys = goalNutrients[goalId];
@@ -138,9 +139,7 @@ export function analyzeProductFit(product: FoodProduct, selectedGoals: GoalId[])
     };
   });
 
-  const uniqueKeys = [
-    ...new Set(selectedGoals.flatMap((goalId) => goalNutrients[goalId])),
-  ];
+  const uniqueKeys = [...new Set(selectedGoals.flatMap((goalId) => goalNutrients[goalId]))];
   const keyFacts = uniqueKeys
     .map((key) => evidenceFor(key, product, serving))
     .filter((item): item is NutrientEvidence => item !== null)

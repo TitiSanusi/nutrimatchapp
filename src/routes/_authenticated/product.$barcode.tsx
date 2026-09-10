@@ -16,7 +16,12 @@ import {
 } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { lookupProduct } from "@/lib/food.functions";
-import { nutrientLabels, nutrientOrder, type FoodProduct, type NutrientKey } from "@/lib/food/types";
+import {
+  nutrientLabels,
+  nutrientOrder,
+  type FoodProduct,
+  type NutrientKey,
+} from "@/lib/food/types";
 import { goalById, goalNutrients } from "@/lib/nutrimatch";
 import {
   analyzeProductFit,
@@ -232,8 +237,8 @@ function Found({ product }: { product: FoodProduct }) {
         </dl>
 
         <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
-          Label data from {product.origin.providerLabel}. Fields the source doesn't have are shown as
-          unavailable — we never estimate them.
+          Label data from {product.origin.providerLabel}. Fields the source doesn't have are shown
+          as unavailable — we never estimate them.
         </p>
       </section>
 
@@ -249,8 +254,12 @@ function Found({ product }: { product: FoodProduct }) {
               </p>
             </div>
             <div className="shrink-0 rounded-xl border border-strong/20 bg-card px-3 py-2 text-center">
-              <span className="font-display block text-xl font-semibold text-muted-foreground">—</span>
-              <span className="block text-[10px] font-semibold text-muted-foreground">/ 100 later</span>
+              <span className="font-display block text-xl font-semibold text-muted-foreground">
+                —
+              </span>
+              <span className="block text-[10px] font-semibold text-muted-foreground">
+                / 100 later
+              </span>
             </div>
           </div>
         </div>
@@ -305,16 +314,17 @@ function Found({ product }: { product: FoodProduct }) {
           </ul>
         ) : (
           <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-            This product does not include the nutrition fields needed to explain your selected goals.
+            This product does not include the nutrition fields needed to explain your selected
+            goals.
           </p>
         )}
         {hasLimitedGoalData && (
           <div className="mt-4 flex gap-3 rounded-xl bg-gentle-soft p-4">
             <AlertTriangle className="mt-0.5 size-4 shrink-0 text-gentle" aria-hidden />
             <p className="text-sm leading-relaxed">
-              <span className="font-semibold">Limited nutrition data.</span>{" "}
-              We can show {analysis.relevantAvailableCount} of {analysis.relevantExpectedCount} relevant
-              label details, so we can’t fully evaluate this product yet.
+              <span className="font-semibold">Limited nutrition data.</span> We can show{" "}
+              {analysis.relevantAvailableCount} of {analysis.relevantExpectedCount} relevant label
+              details, so we can’t fully evaluate this product yet.
             </p>
           </div>
         )}
@@ -378,8 +388,8 @@ function Found({ product }: { product: FoodProduct }) {
         <h2 className="font-display mt-2 text-lg font-semibold">Compare like with like</h2>
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
           When comparing similar products, use the same basis — per serving or per 100 g/ml — and
-          compare the label fields tied to your goals: {comparisonLabels(myGoals)}. A future approved
-          method will determine how those differences affect the fit category.
+          compare the label fields tied to your goals: {comparisonLabels(myGoals)}. A future
+          approved method will determine how those differences affect the fit category.
         </p>
       </section>
 
@@ -442,7 +452,8 @@ function GoalEvidenceCard({ goal }: { goal: GoalEvidence }) {
         </>
       ) : (
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-          The relevant nutrition fields for this goal are not listed, so NutriMatch won’t infer them.
+          The relevant nutrition fields for this goal are not listed, so NutriMatch won’t infer
+          them.
         </p>
       )}
       {goal.missing.length > 0 && (
@@ -476,9 +487,10 @@ function PortionComparison({
   }
 
   const servingLabel = servingSize ?? "1 serving";
-  const halfLabel = analysis.serving.amount && analysis.serving.unit
-    ? `${analysis.serving.amount / 2} ${analysis.serving.unit}`
-    : "½ serving";
+  const halfLabel =
+    analysis.serving.amount && analysis.serving.unit
+      ? `${analysis.serving.amount / 2} ${analysis.serving.unit}`
+      : "½ serving";
 
   return (
     <section className="card-soft mt-4 p-6">
@@ -494,7 +506,9 @@ function PortionComparison({
           <p className="mt-1 text-sm font-semibold">{servingLabel}</p>
           <ul className="mt-3 space-y-1.5 text-xs text-muted-foreground">
             {facts.map((fact) => (
-              <li key={fact.key}>{fact.value} {fact.unit} {fact.label.toLowerCase()}</li>
+              <li key={fact.key}>
+                {fact.value} {fact.unit} {fact.label.toLowerCase()}
+              </li>
             ))}
           </ul>
         </div>
@@ -503,7 +517,9 @@ function PortionComparison({
           <p className="mt-1 text-sm font-semibold">{halfLabel}</p>
           <ul className="mt-3 space-y-1.5 text-xs text-muted-foreground">
             {facts.map((fact) => (
-              <li key={fact.key}>≈ {halfPortion(fact.value)} {fact.unit} {fact.label.toLowerCase()}</li>
+              <li key={fact.key}>
+                ≈ {halfPortion(fact.value)} {fact.unit} {fact.label.toLowerCase()}
+              </li>
             ))}
           </ul>
         </div>
@@ -513,8 +529,9 @@ function PortionComparison({
 }
 
 function comparisonLabels(goalIds: Parameters<typeof analyzeProductFit>[1]) {
-  const labels = [...new Set(goalIds.flatMap((id) => goalNutrients[id]))]
-    .map((key) => nutrientLabels[key].label.toLowerCase());
+  const labels = [...new Set(goalIds.flatMap((id) => goalNutrients[id]))].map((key) =>
+    nutrientLabels[key].label.toLowerCase(),
+  );
   if (labels.length < 2) return labels[0] ?? "the available nutrients";
   return `${labels.slice(0, -1).join(", ")} and ${labels.at(-1)}`;
 }
