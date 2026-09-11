@@ -5,7 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import {
   AlertTriangle,
   ArrowLeft,
-  Check,
+  
   ImageOff,
   Info,
   PackageSearch,
@@ -437,7 +437,10 @@ function GoalEvidenceCard({ goal }: { goal: GoalEvidence }) {
             {goal.available.map((fact) => (
               <li key={fact.key} className="flex items-center justify-between gap-4 text-sm">
                 <span className="flex items-center gap-2 text-muted-foreground">
-                  <Check className="size-3.5 text-strong" aria-hidden />
+                  <span
+                    className="size-1.5 shrink-0 rounded-full bg-muted-foreground/50"
+                    aria-hidden
+                  />
                   {fact.label}
                 </span>
                 <span className="font-medium tabular-nums">
