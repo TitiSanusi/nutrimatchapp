@@ -1,3 +1,4 @@
+import { resolveEnergyKcal } from "./energy";
 import type {
   FoodProduct,
   FoodProvider,
