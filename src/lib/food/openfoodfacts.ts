@@ -77,13 +77,25 @@ type Nutriments = Record<string, unknown>;
 function nutrients(n: Nutriments, suffix: "_100g" | "_serving"): NutrientValues {
   const salt = num(n[`salt${suffix}`]);
   const sodiumG = num(n[`sodium${suffix}`]);
+  const protein = num(n[`proteins${suffix}`]);
+  const carbs = num(n[`carbohydrates${suffix}`]);
+  const fat = num(n[`fat${suffix}`]);
+
+  // Open Food Facts may carry an explicit kcal field, a kJ field, and a generic
+  // `energy` field whose unit is stated separately. Each candidate is collected in
+  // its own unit — no conversion happens here, so nothing is converted twice.
+  const genericUnit = (text(n["energy_unit"]) ?? "").toLowerCase();
+  const generic = num(n[`energy${suffix}`]);
+  const kcal = num(n[`energy-kcal${suffix}`]) ?? (genericUnit === "kcal" ? generic : null);
+  const kj = num(n[`energy-kj${suffix}`]) ?? (genericUnit === "kj" ? generic : null);
+
   return {
-    energyKcal: num(n[`energy-kcal${suffix}`]),
-    protein: num(n[`proteins${suffix}`]),
-    carbs: num(n[`carbohydrates${suffix}`]),
+    energyKcal: resolveEnergyKcal({ kcal, kj, protein, carbs, fat }).kcal,
+    protein,
+    carbs,
     sugars: num(n[`sugars${suffix}`]),
     addedSugars: num(n[`added-sugars${suffix}`]),
-    fat: num(n[`fat${suffix}`]),
+    fat,
     satFat: num(n[`saturated-fat${suffix}`]),
     fibre: num(n[`fiber${suffix}`]),
     // Open Food Facts reports sodium in grams.
