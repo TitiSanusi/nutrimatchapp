@@ -138,13 +138,13 @@ function mapProduct(raw: Record<string, unknown>, barcode: string): FoodProduct 
     imageUrl: text(raw["image_front_url"]) ?? text(raw["image_url"]),
     quantity: text(raw["quantity"]),
     servingSize,
-    ingredientsText: text(raw["ingredients_text"]),
+    ingredientsText,
     allergens: list(raw["allergens_tags"]),
     categories: list(raw["categories"]),
     countries: list(raw["countries"]),
     nutrition: {
-      per100g: nutrients(n, "_100g", servingAmount),
-      perServing: nutrients(n, "_serving", servingAmount),
+      per100g: nutrients(n, "_100g", servingAmount, ingredientsText),
+      perServing: nutrients(n, "_serving", servingAmount, ingredientsText),
     },
     extras,
     origin: {
