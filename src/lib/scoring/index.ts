@@ -39,7 +39,13 @@ import {
   type ScoreLabel,
 } from "./config";
 
-export type GoalStatus = "supports" | "works_against" | "no_contribution" | "limited_data";
+export type GoalStatus =
+  | "supports"
+  | "works_against"
+  /** Evidence shows the goal is worked against, but the amount cannot be quantified. */
+  | "works_against_uncertain"
+  | "no_contribution"
+  | "limited_data";
 
 export type ScoreBasis = "perServing" | "per100" | "mixed";
 
@@ -238,18 +244,19 @@ function scoreAddedSugarGoal(
   }
 
   if (ingredientEvidence) {
+    // Qualitative only: total sugar is context, never converted into an added-sugar score.
     const context = totalSugars
-      ? ` Total sugars are ${totalSugars.value} g ${basisWord(totalSugars.basis)} — contextual evidence only, not an added-sugar amount.`
-      : "";
+      ? ` This product contains ${totalSugars.value} g total sugar ${basisWord(totalSugars.basis)}, but a reliable added-sugar quantity is unavailable.`
+      : " A reliable added-sugar quantity is unavailable.";
     return {
       ...base,
       score: null,
       label: null,
-      status: "works_against",
+      status: "works_against_uncertain",
       basis: totalSugars?.basis ?? null,
       used: totalSugars ? [`Total sugars ${totalSugars.value} g ${basisWord(totalSugars.basis)}`] : [],
       quantityUncertain: true,
-      explanation: `Added-sugar ingredients are present. The exact added-sugar amount is unavailable, so no score is calculated for this goal.${context}`,
+      explanation: `Added-sugar ingredients are present.${context} No numeric score is calculated for this goal.`,
     };
   }
 
@@ -452,6 +459,7 @@ export function scoreProductFit(product: FoodProduct, selectedGoals: GoalId[]): 
 export const statusText: Record<GoalStatus, string> = {
   supports: "Supports this goal",
   works_against: "Works against this goal",
+  works_against_uncertain: "Works against goal — quantity uncertain",
   no_contribution: "Doesn't contribute to this goal",
   limited_data: "Limited data",
 };
