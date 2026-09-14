@@ -106,9 +106,28 @@ describe("added sugar goal", () => {
     expect(p.nutrition.per100g.addedSugars).toBeNull();
     const goal = scoreProductFit(p, ["less-sugar"]).goals[0];
     expect(goal?.score).toBeNull();
-    expect(goal?.status).toBe("works_against");
+    expect(goal?.status).toBe("works_against_uncertain");
+    expect(goal?.label).toBeNull();
     expect(goal?.quantityUncertain).toBe(true);
-    expect(goal?.explanation).toContain("exact added-sugar amount is unavailable");
+    expect(goal?.explanation).toContain("Added-sugar ingredients are present");
+    expect(goal?.explanation).toContain("34.48 g total sugar");
+    expect(goal?.explanation).toContain("reliable added-sugar quantity is unavailable");
+  });
+
+  test("an uncertain added-sugar goal is excluded from the overall average", () => {
+    const p = validated({
+      raw100: { sugars: 10.99, addedSugars: null, energyKcal: 39.4, protein: 0, carbs: 10.99, fat: 0 },
+      ingredientsText: "carbonated water, high fructose corn syrup, citric acid",
+      servingSize: "355 ml",
+      name: "Lemon lime soda",
+    });
+    const fit = scoreProductFit(p, ["less-sugar", "lose-weight", "more-fibre"]);
+    const sugar = fit.goals.find((g) => g.goalId === "less-sugar");
+    const weight = fit.goals.find((g) => g.goalId === "lose-weight");
+    expect(sugar?.score).toBeNull();
+    expect(sugar?.status).toBe("works_against_uncertain");
+    expect(fit.scoredGoalCount).toBe(1);
+    expect(fit.score).toBe(weight?.score ?? null);
   });
 
   test("missing added sugar with no ingredient evidence is Limited data", () => {
