@@ -165,6 +165,18 @@ export function validateNutrientRelations(
     }
   }
 
+  // Credibility check: a reported 0 g added sugars is contradicted when the
+  // ingredient list explicitly names an added-sugar ingredient. The value becomes
+  // unverified (null). No amount is estimated and total sugars are never
+  // substituted. A genuine 0 with no contradicting ingredient is preserved.
+  if (out.addedSugars === 0 && hasAddedSugarIngredient(context?.ingredientsText)) {
+    out.addedSugars = null;
+    rejected.push({
+      key: "addedSugars",
+      reason: "added_sugars_contradicted_by_ingredients",
+    });
+  }
+
   // Saturated fat is a component of total fat.
   if (isNum(out.satFat) && isNum(out.fat) && out.satFat > out.fat + COMPONENT_TOLERANCE_G) {
     drop("satFat", "component_exceeds_total");
