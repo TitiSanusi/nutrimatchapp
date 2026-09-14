@@ -118,6 +118,8 @@ function nutrients(
 
 function mapProduct(raw: Record<string, unknown>, barcode: string): FoodProduct {
   const n = (raw["nutriments"] ?? {}) as Nutriments;
+  const servingSize = text(raw["serving_size"]);
+  const servingAmount = parseServingAmount(servingSize)?.amount ?? null;
   const extras: { label: string; value: string }[] = [];
   const nova = num(raw["nova_group"]);
   if (nova !== null) extras.push({ label: "NOVA processing group", value: String(nova) });
@@ -132,7 +134,7 @@ function mapProduct(raw: Record<string, unknown>, barcode: string): FoodProduct 
     brand: text(raw["brands"]),
     imageUrl: text(raw["image_front_url"]) ?? text(raw["image_url"]),
     quantity: text(raw["quantity"]),
-    servingSize: text(raw["serving_size"]),
+    servingSize,
     ingredientsText: text(raw["ingredients_text"]),
     allergens: list(raw["allergens_tags"]),
     categories: list(raw["categories"]),
