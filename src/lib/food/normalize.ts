@@ -13,10 +13,19 @@
  * - Nothing is estimated: validation checks never become displayed values.
  */
 
+import { hasAddedSugarIngredient } from "./added-sugars";
 import { resolveEnergyKcal } from "./energy";
 import type { NutrientKey, NutrientValues } from "./types";
 
 export type MeasurementBasis = "per100" | "perServing";
+
+/**
+ * Extra source context used for credibility checks that need more than the
+ * numbers themselves (currently the ingredient list).
+ */
+export type NutrientContext = {
+  ingredientsText?: string | null;
+};
 
 /** Fields as they arrive from a provider, in provider units. */
 export type RawNutrientInput = {
@@ -48,6 +57,7 @@ export type RejectionReason =
   | "negative"
   | "implausible"
   | "added_sugars_exceed_total"
+  | "added_sugars_contradicted_by_ingredients"
   | "sugars_exceed_carbs"
   | "component_exceeds_total"
   | "energy_inconsistent";
@@ -113,6 +123,7 @@ export function validateNutrientRelations(
   basis: MeasurementBasis,
   /** Serving amount in g/ml; used to scale plausibility ceilings. */
   servingAmount?: number | null,
+  context?: NutrientContext,
 ): NormalizedNutrients {
   const out: NutrientValues = { ...values };
   const rejected: { key: NutrientKey; reason: RejectionReason }[] = [];
@@ -154,6 +165,18 @@ export function validateNutrientRelations(
     }
   }
 
+  // Credibility check: a reported 0 g added sugars is contradicted when the
+  // ingredient list explicitly names an added-sugar ingredient. The value becomes
+  // unverified (null). No amount is estimated and total sugars are never
+  // substituted. A genuine 0 with no contradicting ingredient is preserved.
+  if (out.addedSugars === 0 && hasAddedSugarIngredient(context?.ingredientsText)) {
+    out.addedSugars = null;
+    rejected.push({
+      key: "addedSugars",
+      reason: "added_sugars_contradicted_by_ingredients",
+    });
+  }
+
   // Saturated fat is a component of total fat.
   if (isNum(out.satFat) && isNum(out.fat) && out.satFat > out.fat + COMPONENT_TOLERANCE_G) {
     drop("satFat", "component_exceeds_total");
@@ -181,6 +204,7 @@ export function normalizeNutrients(
   raw: RawNutrientInput,
   basis: MeasurementBasis,
   servingAmount?: number | null,
+  context?: NutrientContext,
 ): NormalizedNutrients {
   const rejected: { key: NutrientKey; reason: RejectionReason }[] = [];
 
@@ -224,6 +248,6 @@ export function normalizeNutrients(
     });
   }
 
-  const validated = validateNutrientRelations(values, basis, servingAmount);
+  const validated = validateNutrientRelations(values, basis, servingAmount, context);
   return { values: validated.values, rejected: [...rejected, ...validated.rejected] };
 }

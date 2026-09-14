@@ -85,6 +85,7 @@ function nutrients(
   n: Nutriments,
   suffix: "_100g" | "_serving",
   servingAmount: number | null,
+  ingredientsText: string | null,
 ): NutrientValues {
   // Open Food Facts may carry an explicit kcal field, a kJ field, and a generic
   // `energy` field whose unit is stated separately. Each candidate is passed on in
@@ -113,6 +114,7 @@ function nutrients(
     },
     suffix === "_100g" ? "per100" : "perServing",
     servingAmount,
+    { ingredientsText },
   ).values;
 }
 
@@ -120,6 +122,7 @@ function mapProduct(raw: Record<string, unknown>, barcode: string): FoodProduct 
   const n = (raw["nutriments"] ?? {}) as Nutriments;
   const servingSize = text(raw["serving_size"]);
   const servingAmount = parseServingAmount(servingSize)?.amount ?? null;
+  const ingredientsText = text(raw["ingredients_text"]);
   const extras: { label: string; value: string }[] = [];
   const nova = num(raw["nova_group"]);
   if (nova !== null) extras.push({ label: "NOVA processing group", value: String(nova) });
@@ -135,13 +138,13 @@ function mapProduct(raw: Record<string, unknown>, barcode: string): FoodProduct 
     imageUrl: text(raw["image_front_url"]) ?? text(raw["image_url"]),
     quantity: text(raw["quantity"]),
     servingSize,
-    ingredientsText: text(raw["ingredients_text"]),
+    ingredientsText,
     allergens: list(raw["allergens_tags"]),
     categories: list(raw["categories"]),
     countries: list(raw["countries"]),
     nutrition: {
-      per100g: nutrients(n, "_100g", servingAmount),
-      perServing: nutrients(n, "_serving", servingAmount),
+      per100g: nutrients(n, "_100g", servingAmount, ingredientsText),
+      perServing: nutrients(n, "_serving", servingAmount, ingredientsText),
     },
     extras,
     origin: {
