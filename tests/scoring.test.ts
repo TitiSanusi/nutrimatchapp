@@ -47,6 +47,28 @@ function validated(opts: Opts & { raw100: Parameters<typeof normalizeNutrients>[
   return product({ ...opts, per100, servingSize: serving });
 }
 
+/**
+ * Neutral synthetic fixture (no real brand): a sugary carbonated drink whose
+ * source reports fibre as an explicit 0 g and gives no added-sugar quantity
+ * while listing added-sugar ingredients.
+ */
+export function synthetic_sugary_beverage(): FoodProduct {
+  return validated({
+    raw100: {
+      sugars: 10.99,
+      addedSugars: null,
+      energyKcal: 39.4,
+      protein: 0,
+      carbs: 10.99,
+      fat: 0,
+      fibre: 0,
+    },
+    ingredientsText: "carbonated water, high fructose corn syrup, citric acid",
+    servingSize: "355 ml",
+    name: "Synthetic sugary beverage",
+  });
+}
+
 describe("fibre goal", () => {
   test("numeric zero is No contribution, not Very Poor", () => {
     const result = scoreProductFit(product({ per100: { fibre: 0 }, servingSize: "50 g" }), [
@@ -114,18 +136,20 @@ describe("added sugar goal", () => {
     expect(goal?.explanation).toContain("reliable added-sugar quantity is unavailable");
   });
 
-  test("an uncertain added-sugar goal is excluded from the overall average", () => {
-    const p = validated({
-      raw100: { sugars: 10.99, addedSugars: null, energyKcal: 39.4, protein: 0, carbs: 10.99, fat: 0 },
-      ingredientsText: "carbonated water, high fructose corn syrup, citric acid",
-      servingSize: "355 ml",
-      name: "Lemon lime soda",
-    });
+  // synthetic_sugary_beverage: a made-up fixture, not any real brand. It exists to
+  // pin scoring behaviour for a sugary drink with an EXPLICIT 0 g fibre value.
+  test("synthetic_sugary_beverage: uncertain added sugar is excluded from the overall average", () => {
+    const p = synthetic_sugary_beverage();
     const fit = scoreProductFit(p, ["less-sugar", "lose-weight", "more-fibre"]);
     const sugar = fit.goals.find((g) => g.goalId === "less-sugar");
     const weight = fit.goals.find((g) => g.goalId === "lose-weight");
+    const fibre = fit.goals.find((g) => g.goalId === "more-fibre");
     expect(sugar?.score).toBeNull();
     expect(sugar?.status).toBe("works_against_uncertain");
+    // Explicit 0 g fibre stays "No contribution", never Limited data.
+    expect(p.nutrition.per100g.fibre).toBe(0);
+    expect(fibre?.status).toBe("no_contribution");
+    expect(fibre?.score).toBeNull();
     expect(fit.scoredGoalCount).toBe(1);
     expect(fit.score).toBe(weight?.score ?? null);
   });
