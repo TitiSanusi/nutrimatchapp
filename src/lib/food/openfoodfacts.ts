@@ -85,6 +85,7 @@ function nutrients(
   n: Nutriments,
   suffix: "_100g" | "_serving",
   servingAmount: number | null,
+  ingredientsText: string | null,
 ): NutrientValues {
   // Open Food Facts may carry an explicit kcal field, a kJ field, and a generic
   // `energy` field whose unit is stated separately. Each candidate is passed on in
