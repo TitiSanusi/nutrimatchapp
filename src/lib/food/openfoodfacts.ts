@@ -114,6 +114,7 @@ function nutrients(
     },
     suffix === "_100g" ? "per100" : "perServing",
     servingAmount,
+    { ingredientsText },
   ).values;
 }
 
