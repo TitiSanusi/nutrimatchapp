@@ -1,10 +1,14 @@
 import { goalById, goalNutrients, type GoalId } from "./nutrimatch";
+import { validateNutrientRelations } from "./food/normalize";
+import { parseServingAmount } from "./serving-size";
 import {
   nutrientLabels,
   type FoodProduct,
   type NutrientKey,
   type NutrientValues,
 } from "./food/types";
+
+export { parseServingAmount };
 
 export type EvidenceBasis = "perServing" | "per100g";
 
