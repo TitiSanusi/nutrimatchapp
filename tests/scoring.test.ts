@@ -47,6 +47,28 @@ function validated(opts: Opts & { raw100: Parameters<typeof normalizeNutrients>[
   return product({ ...opts, per100, servingSize: serving });
 }
 
+/**
+ * Neutral synthetic fixture (no real brand): a sugary carbonated drink whose
+ * source reports fibre as an explicit 0 g and gives no added-sugar quantity
+ * while listing added-sugar ingredients.
+ */
+export function synthetic_sugary_beverage(): FoodProduct {
+  return validated({
+    raw100: {
+      sugars: 10.99,
+      addedSugars: null,
+      energyKcal: 39.4,
+      protein: 0,
+      carbs: 10.99,
+      fat: 0,
+      fibre: 0,
+    },
+    ingredientsText: "carbonated water, high fructose corn syrup, citric acid",
+    servingSize: "355 ml",
+    name: "Synthetic sugary beverage",
+  });
+}
+
 describe("fibre goal", () => {
   test("numeric zero is No contribution, not Very Poor", () => {
     const result = scoreProductFit(product({ per100: { fibre: 0 }, servingSize: "50 g" }), [
