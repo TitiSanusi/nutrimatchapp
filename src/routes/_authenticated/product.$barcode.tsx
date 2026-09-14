@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { lookupProduct } from "@/lib/food.functions";
+import { hasAddedSugarIngredient } from "@/lib/food/added-sugars";
 import {
   nutrientLabels,
   nutrientOrder,
