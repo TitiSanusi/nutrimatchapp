@@ -1,10 +1,14 @@
 import { goalById, goalNutrients, type GoalId } from "./nutrimatch";
+import { validateNutrientRelations } from "./food/normalize";
+import { parseServingAmount } from "./serving-size";
 import {
   nutrientLabels,
   type FoodProduct,
   type NutrientKey,
   type NutrientValues,
 } from "./food/types";
+
+export { parseServingAmount };
 
 export type EvidenceBasis = "perServing" | "per100g";
 
@@ -48,22 +52,6 @@ const hasValue = (value: number | null | undefined): value is number =>
 
 const round = (value: number) => Math.round(value * 100) / 100;
 
-/**
- * Parses an explicitly stated metric serving amount. It deliberately fails
- * closed when more than one gram/millilitre quantity appears in the label.
- */
-export function parseServingAmount(
-  servingSize: string | null,
-): { amount: number; unit: "g" | "ml" } | null {
-  if (!servingSize) return null;
-  const matches = [...servingSize.matchAll(/(\d+(?:[.,]\d+)?)\s*(g|ml)\b/gi)];
-  if (matches.length !== 1) return null;
-  const amount = Number(matches[0]?.[1]?.replace(",", "."));
-  const unit = matches[0]?.[2]?.toLowerCase();
-  if (!Number.isFinite(amount) || amount <= 0 || (unit !== "g" && unit !== "ml")) return null;
-  return { amount, unit };
-}
-
 export function resolveServingNutrition(product: FoodProduct): ServingNutrition {
   const parsed = parseServingAmount(product.servingSize);
   const values: NutrientValues = {};
@@ -84,11 +72,16 @@ export function resolveServingNutrition(product: FoodProduct): ServingNutrition 
     }
   }
 
+  // Mixing reported and derived values can create a set that no longer holds
+  // together, so the same validation runs again on this single basis.
+  const validated = validateNutrientRelations(values, "perServing", parsed?.amount ?? null);
+  const survivingDerived = derivedKeys.filter((key) => hasValue(validated.values[key]));
+
   return {
     amount: parsed?.amount ?? null,
     unit: parsed?.unit ?? null,
-    values,
-    derivedKeys,
+    values: validated.values,
+    derivedKeys: survivingDerived,
   };
 }
 
