@@ -243,37 +243,8 @@ function Found({ product }: { product: FoodProduct }) {
         </p>
       </section>
 
-      <section className="card-soft mt-4 overflow-hidden">
-        <div className="bg-strong-soft p-6">
-          <div className="flex items-start justify-between gap-5">
-            <div className="min-w-0">
-              <p className="eyebrow text-strong">NutriMatch fit</p>
-              <h2 className="font-display mt-2 text-xl font-semibold">Not yet classified</h2>
-              <p className="mt-2 max-w-lg text-sm leading-relaxed text-muted-foreground">
-                We’re waiting for NutriMatch’s evidence-based evaluation rules before assigning an
-                Excellent, Good, Moderate, Poor, or Very Poor fit.
-              </p>
-            </div>
-            <div className="shrink-0 rounded-xl border border-strong/20 bg-card px-3 py-2 text-center">
-              <span className="font-display block text-xl font-semibold text-muted-foreground">
-                —
-              </span>
-              <span className="block text-[10px] font-semibold text-muted-foreground">
-                / 100 later
-              </span>
-            </div>
-          </div>
-        </div>
-        <div className="border-t border-border p-6">
-          <div className="flex gap-3">
-            <Info className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden />
-            <p className="text-sm leading-relaxed text-muted-foreground">
-              No hidden score or nutrition thresholds have been applied. The facts below come from
-              this product’s available label data.
-            </p>
-          </div>
-        </div>
-      </section>
+      <FitSection fit={fit} />
+
 
       <section className="card-soft mt-4 p-6">
         <p className="eyebrow text-primary">How it fits your goals</p>
