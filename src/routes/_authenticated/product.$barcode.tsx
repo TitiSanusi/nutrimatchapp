@@ -198,7 +198,9 @@ function Found({ product }: { product: FoodProduct }) {
 
   const myGoals = profile.goals.length ? profile.goals : [profile.goal];
   const analysis = analyzeProductFit(product, myGoals);
+  const fit = scoreProductFit(product, myGoals);
   const hasLimitedGoalData = analysis.relevantAvailableCount < analysis.relevantExpectedCount;
+
 
   return (
     <>
@@ -243,7 +245,8 @@ function Found({ product }: { product: FoodProduct }) {
         </p>
       </section>
 
-      <FitSection fit={fit} />
+      <FitSection fit={fit} product={product} />
+
 
 
       <section className="card-soft mt-4 p-6">
