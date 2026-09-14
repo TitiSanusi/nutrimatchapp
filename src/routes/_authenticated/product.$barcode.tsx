@@ -30,6 +30,7 @@ import {
   type GoalEvidence,
   type NutrientEvidence,
 } from "@/lib/product-fit";
+import { scoreProductFit, statusText, type GoalScore, type ProductScore } from "@/lib/scoring";
 import { useNutriMatch } from "@/lib/store";
 
 export const Route = createFileRoute("/_authenticated/product/$barcode")({
