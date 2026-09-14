@@ -72,11 +72,16 @@ export function resolveServingNutrition(product: FoodProduct): ServingNutrition 
     }
   }
 
+  // Mixing reported and derived values can create a set that no longer holds
+  // together, so the same validation runs again on this single basis.
+  const validated = validateNutrientRelations(values, "perServing", parsed?.amount ?? null);
+  const survivingDerived = derivedKeys.filter((key) => hasValue(validated.values[key]));
+
   return {
     amount: parsed?.amount ?? null,
     unit: parsed?.unit ?? null,
-    values,
-    derivedKeys,
+    values: validated.values,
+    derivedKeys: survivingDerived,
   };
 }
 
