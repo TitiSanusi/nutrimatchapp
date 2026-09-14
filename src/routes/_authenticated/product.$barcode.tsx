@@ -395,6 +395,111 @@ function Found({ product }: { product: FoodProduct }) {
   );
 }
 
+function FitSection({ fit, product }: { fit: ProductScore; product: FoodProduct }) {
+  const scored = fit.score !== null;
+  return (
+    <section className="card-soft mt-4 overflow-hidden">
+      <div className="bg-strong-soft p-6">
+        <div className="flex items-start justify-between gap-5">
+          <div className="min-w-0">
+            <p className="eyebrow text-strong">NutriMatch fit</p>
+            <h2 className="font-display mt-2 text-xl font-semibold">
+              {scored ? `${fit.label} fit for your goals` : "Limited data"}
+            </h2>
+            <p className="mt-2 max-w-lg text-sm leading-relaxed text-muted-foreground">
+              {scored
+                ? `Based on ${fit.scoredGoalCount} of your ${fit.consideredGoalCount} selected goal${
+                    fit.consideredGoalCount === 1 ? "" : "s"
+                  }. This shows how well the product matches the goals you chose — not whether a food is healthy or unhealthy.`
+                : "None of your selected goals can be evaluated from this product's available label data. Missing information is never counted as zero."}
+            </p>
+          </div>
+          <div className="shrink-0 rounded-xl border border-strong/20 bg-card px-3 py-2 text-center">
+            <span className="font-display block text-xl font-semibold tabular-nums">
+              {scored ? fit.score : "—"}
+            </span>
+            <span className="block text-[10px] font-semibold text-muted-foreground">/ 100</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-3 border-t border-border p-6">
+        {fit.goals.map((goal) => (
+          <GoalScoreCard key={goal.goalId} goal={goal} />
+        ))}
+        {fit.unscoredGoals.length > 0 && (
+          <p className="text-xs leading-relaxed text-muted-foreground">
+            {fit.unscoredGoals.map((g) => g.goalLabel).join(", ")}:{" "}
+            {fit.unscoredGoals.length === 1 ? "this goal is" : "these goals are"} shown as label
+            facts below and is not part of the fit number yet.
+          </p>
+        )}
+      </div>
+
+      <details className="border-t border-border">
+        <summary className="cursor-pointer p-6 text-sm font-semibold">
+          How NutriMatch calculated this
+        </summary>
+        <div className="space-y-3 px-6 pb-6 text-sm leading-relaxed text-muted-foreground">
+          <p>
+            NutriMatch looked at{" "}
+            {fit.goals.length ? fit.goals.map((g) => g.goalLabel.toLowerCase()).join(", ") : "no"}{" "}
+            selected goal
+            {fit.goals.length === 1 ? "" : "s"} and used{" "}
+            {fit.servingReliable
+              ? "this product's stated serving size"
+              : "standardized per 100 g/ml values, because no reliable serving size is stated"}
+            . For energy, {fit.category.reason}.
+          </p>
+          {fit.goals.map((goal) => (
+            <div key={goal.goalId}>
+              <p className="font-medium text-foreground">{goal.goalLabel}</p>
+              <p>
+                {goal.score === null
+                  ? `${statusText[goal.status]} — left out of the fit number.`
+                  : `${goal.score}/100 · ${goal.label}.`}{" "}
+                {goal.used.length ? `Values used: ${goal.used.join("; ")}.` : "No values available."}
+              </p>
+            </div>
+          ))}
+          <p>
+            Values the source doesn't state are shown as unavailable — they are never estimated, and
+            no serving size is invented. Label data from {product.origin.providerLabel}.
+          </p>
+        </div>
+      </details>
+    </section>
+  );
+}
+
+function GoalScoreCard({ goal }: { goal: GoalScore }) {
+  return (
+    <article className="rounded-xl border border-border p-4">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h3 className="font-display text-sm font-semibold">{goal.goalLabel}</h3>
+        <p className="text-sm font-medium tabular-nums">
+          {goal.score === null ? (
+            <span className="text-muted-foreground">{statusText[goal.status]}</span>
+          ) : (
+            <>
+              {goal.score}/100 · {goal.label}
+            </>
+          )}
+        </p>
+      </div>
+      <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{goal.explanation}</p>
+      {goal.score !== null && (
+        <p className="mt-2 text-xs text-muted-foreground">{statusText[goal.status]}</p>
+      )}
+      {goal.quantityUncertain && (
+        <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+          The amount is uncertain, so this goal is not part of the fit number.
+        </p>
+      )}
+    </article>
+  );
+}
+
 function formatEvidence(fact: NutrientEvidence) {
   return `${fact.value} ${fact.unit} ${fact.label.toLowerCase()}`;
 }
