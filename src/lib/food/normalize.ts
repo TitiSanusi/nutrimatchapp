@@ -123,6 +123,7 @@ export function validateNutrientRelations(
   basis: MeasurementBasis,
   /** Serving amount in g/ml; used to scale plausibility ceilings. */
   servingAmount?: number | null,
+  context?: NutrientContext,
 ): NormalizedNutrients {
   const out: NutrientValues = { ...values };
   const rejected: { key: NutrientKey; reason: RejectionReason }[] = [];
