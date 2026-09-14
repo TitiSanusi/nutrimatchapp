@@ -1,4 +1,5 @@
-import { resolveEnergyKcal } from "./energy";
+import { normalizeNutrients } from "./normalize";
+import { parseServingAmount } from "../serving-size";
 import type {
   FoodProduct,
   FoodProvider,
@@ -75,34 +76,44 @@ const list = (v: unknown): string[] => {
 
 type Nutriments = Record<string, unknown>;
 
-function nutrients(n: Nutriments, suffix: "_100g" | "_serving"): NutrientValues {
-  const salt = num(n[`salt${suffix}`]);
-  const sodiumG = num(n[`sodium${suffix}`]);
-  const protein = num(n[`proteins${suffix}`]);
-  const carbs = num(n[`carbohydrates${suffix}`]);
-  const fat = num(n[`fat${suffix}`]);
-
+/**
+ * Maps one measurement basis of the provider payload into the app shape.
+ * All parsing, unit handling and validation happens in `normalizeNutrients`;
+ * this function only decides which provider field feeds which slot.
+ */
+function nutrients(
+  n: Nutriments,
+  suffix: "_100g" | "_serving",
+  servingAmount: number | null,
+): NutrientValues {
   // Open Food Facts may carry an explicit kcal field, a kJ field, and a generic
-  // `energy` field whose unit is stated separately. Each candidate is collected in
+  // `energy` field whose unit is stated separately. Each candidate is passed on in
   // its own unit — no conversion happens here, so nothing is converted twice.
   const genericUnit = (text(n["energy_unit"]) ?? "").toLowerCase();
-  const generic = num(n[`energy${suffix}`]);
-  const kcal = num(n[`energy-kcal${suffix}`]) ?? (genericUnit === "kcal" ? generic : null);
-  const kj = num(n[`energy-kj${suffix}`]) ?? (genericUnit === "kj" ? generic : null);
+  const generic = n[`energy${suffix}`];
+  const kcal = n[`energy-kcal${suffix}`] ?? (genericUnit === "kcal" ? generic : null);
+  const kj = n[`energy-kj${suffix}`] ?? (genericUnit === "kj" ? generic : null);
 
-  return {
-    energyKcal: resolveEnergyKcal({ kcal, kj, protein, carbs, fat }).kcal,
-    protein,
-    carbs,
-    sugars: num(n[`sugars${suffix}`]),
-    addedSugars: num(n[`added-sugars${suffix}`]),
-    fat,
-    satFat: num(n[`saturated-fat${suffix}`]),
-    fibre: num(n[`fiber${suffix}`]),
-    // Open Food Facts reports sodium in grams.
-    sodiumMg: sodiumG === null ? null : Math.round(sodiumG * 1000),
-    saltG: salt,
-  };
+  // Open Food Facts reports sodium in grams; convert only a value that parses.
+  const sodiumG = num(n[`sodium${suffix}`]);
+
+  return normalizeNutrients(
+    {
+      energyKcal: kcal,
+      energyKj: kj,
+      protein: n[`proteins${suffix}`],
+      carbs: n[`carbohydrates${suffix}`],
+      sugars: n[`sugars${suffix}`],
+      addedSugars: n[`added-sugars${suffix}`],
+      fat: n[`fat${suffix}`],
+      satFat: n[`saturated-fat${suffix}`],
+      fibre: n[`fiber${suffix}`],
+      sodiumMg: sodiumG === null ? null : Math.round(sodiumG * 1000),
+      saltG: n[`salt${suffix}`],
+    },
+    suffix === "_100g" ? "per100" : "perServing",
+    servingAmount,
+  ).values;
 }
 
 function mapProduct(raw: Record<string, unknown>, barcode: string): FoodProduct {
