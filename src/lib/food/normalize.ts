@@ -248,6 +248,6 @@ export function normalizeNutrients(
     });
   }
 
-  const validated = validateNutrientRelations(values, basis, servingAmount);
+  const validated = validateNutrientRelations(values, basis, servingAmount, context);
   return { values: validated.values, rejected: [...rejected, ...validated.rejected] };
 }
