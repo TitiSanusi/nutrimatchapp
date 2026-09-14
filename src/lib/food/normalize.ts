@@ -204,6 +204,7 @@ export function normalizeNutrients(
   raw: RawNutrientInput,
   basis: MeasurementBasis,
   servingAmount?: number | null,
+  context?: NutrientContext,
 ): NormalizedNutrients {
   const rejected: { key: NutrientKey; reason: RejectionReason }[] = [];
 
