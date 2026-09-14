@@ -458,7 +458,6 @@ function consumerExplanation(goal: GoalScore) {
     const energyDetail = energy?.detail.split(" · ")[0];
     if (energyDetail && protein?.score === 0 && fibre?.score === 0) {
       return `${energyDetail} with no protein or fibre contribution.`;
-eit
     }
     if (energyDetail) return `Based on ${energyDetail}, protein density, and fibre density.`;
   }
