@@ -57,6 +57,7 @@ export type RejectionReason =
   | "negative"
   | "implausible"
   | "added_sugars_exceed_total"
+  | "added_sugars_contradicted_by_ingredients"
   | "sugars_exceed_carbs"
   | "component_exceeds_total"
   | "energy_inconsistent";
