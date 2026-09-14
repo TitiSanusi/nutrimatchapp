@@ -496,6 +496,7 @@ function GoalScoreCard({ goal }: { goal: GoalScore }) {
           The amount is uncertain, so this goal is not part of the fit number.
         </p>
       )}
+      {goal.status === "works_against_uncertain" && !goal.quantityUncertain && null}
     </article>
   );
 }
