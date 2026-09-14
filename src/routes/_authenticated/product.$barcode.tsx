@@ -360,6 +360,14 @@ function Found({ product }: { product: FoodProduct }) {
             </tbody>
           </table>
         </div>
+        {per100.addedSugars === null &&
+          perServing.addedSugars === null &&
+          hasAddedSugarIngredient(product.ingredientsText) && (
+            <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
+              The ingredient list contains added-sugar ingredients, but a reliable added-sugar
+              amount is not available.
+            </p>
+          )}
       </section>
 
       <section className="card-soft mt-4 p-6">
