@@ -13,10 +13,19 @@
  * - Nothing is estimated: validation checks never become displayed values.
  */
 
+import { hasAddedSugarIngredient } from "./added-sugars";
 import { resolveEnergyKcal } from "./energy";
 import type { NutrientKey, NutrientValues } from "./types";
 
 export type MeasurementBasis = "per100" | "perServing";
+
+/**
+ * Extra source context used for credibility checks that need more than the
+ * numbers themselves (currently the ingredient list).
+ */
+export type NutrientContext = {
+  ingredientsText?: string | null;
+};
 
 /** Fields as they arrive from a provider, in provider units. */
 export type RawNutrientInput = {
