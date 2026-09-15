@@ -197,7 +197,9 @@ function Found({ product }: { product: FoodProduct }) {
     queryKey: ["alternatives", product.barcode, myGoals.join(","), profile.country],
     queryFn: () =>
       fetchAlternatives({
-        data: { barcode: product.barcode, goals: myGoals, country: profile.country || undefined },
+        data: profile.country
+          ? { barcode: product.barcode, goals: myGoals, country: profile.country }
+          : { barcode: product.barcode, goals: myGoals },
       }),
     staleTime: 30 * 60 * 1000,
     retry: 0,
