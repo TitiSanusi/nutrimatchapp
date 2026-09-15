@@ -30,6 +30,7 @@ import {
   strongestImprovement,
   type EvaluatedCandidate,
 } from "./compare";
+import { isCategoryCompatible } from "./compatibility";
 import { RECOMMEND_CONFIG as CFG } from "./config";
 import type { AlternativeCardData, AlternativesOutcome } from "./types";
 
