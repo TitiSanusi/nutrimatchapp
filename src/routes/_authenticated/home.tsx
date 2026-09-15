@@ -1,8 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { ScanLine, Search, ChevronRight, ImageOff } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { Avatar } from "@/components/avatar";
 import { goals } from "@/lib/nutrimatch";
+import { listScanHistory } from "@/lib/history.functions";
 import { firstName, useNutriMatch } from "@/lib/store";
 
 export const Route = createFileRoute("/_authenticated/home")({
@@ -27,10 +30,16 @@ export const Route = createFileRoute("/_authenticated/home")({
 });
 
 function HomePage() {
-  const { profile, history, ready } = useNutriMatch();
+  const { profile, session, ready } = useNutriMatch();
   const myGoals = goals.filter((g) => profile.goals.includes(g.id));
   const first = firstName(profile.name);
-  const recent = history.slice(0, 3);
+  const fetchHistory = useServerFn(listScanHistory);
+  const history = useQuery({
+    queryKey: ["scan-history", session?.user.id ?? null],
+    queryFn: () => fetchHistory(),
+    enabled: ready && !!session,
+  });
+  const recent = (history.data ?? []).slice(0, 3);
 
   return (
     <AppShell>
@@ -91,7 +100,7 @@ function HomePage() {
           </Link>
         </div>
 
-        {!ready ? null : recent.length === 0 ? (
+        {history.isPending ? null : recent.length === 0 ? (
           <p className="card-soft mt-3 p-5 text-sm text-muted-foreground">
             Nothing scanned yet. Your first scan will show up here.
           </p>
