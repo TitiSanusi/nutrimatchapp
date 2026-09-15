@@ -28,15 +28,6 @@ export type Profile = {
   onboarded: boolean;
 };
 
-export type ScanEntry = {
-  barcode: string;
-  name: string | null;
-  brand: string | null;
-  imageUrl: string | null;
-  goal: GoalId;
-  scannedAt: string;
-};
-
 const validGoals = new Set(allGoals.map((g) => g.id as string));
 
 export const defaultProfile: Profile = {
@@ -60,37 +51,13 @@ type Ctx = {
   ready: boolean;
   session: Session | null;
   profile: Profile;
-  history: ScanEntry[];
   saveProfile: (patch: ProfilePatch) => Promise<void>;
   uploadAvatar: (file: File) => Promise<string>;
   removeAvatar: () => Promise<void>;
-  recordScan: (entry: {
-    barcode: string;
-    name: string | null;
-    brand: string | null;
-    imageUrl: string | null;
-  }) => void;
-  clearHistory: () => void;
   signOut: () => Promise<void>;
 };
 
 const NutriMatchContext = createContext<Ctx | null>(null);
-
-const historyKey = (userId: string) => `nutrimatch.history.${userId}`;
-
-function readHistory(userId: string): ScanEntry[] {
-  try {
-    const raw = localStorage.getItem(historyKey(userId));
-    const parsed = raw ? (JSON.parse(raw) as unknown[]) : [];
-    // Drop entries saved before scans were keyed by barcode.
-    return (Array.isArray(parsed) ? parsed : []).filter(
-      (e): e is ScanEntry =>
-        !!e && typeof (e as ScanEntry).barcode === "string" && (e as ScanEntry).barcode.length > 0,
-    );
-  } catch {
-    return [];
-  }
-}
 
 /** Keeps goals/goal consistent and inside the 1–3 range. */
 function normalizeGoals(list: unknown): GoalId[] {
@@ -113,7 +80,6 @@ export function NutriMatchProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile>(defaultProfile);
-  const [history, setHistory] = useState<ScanEntry[]>([]);
   const userId = session?.user.id ?? null;
   const loadedFor = useRef<string | null>(null);
 
@@ -156,7 +122,6 @@ export function NutriMatchProvider({ children }: { children: ReactNode }) {
         await supabase.from("profiles").insert({ id, name: "" });
         setProfile({ ...defaultProfile, email });
       }
-      setHistory(readHistory(id));
     },
     [toProfile],
   );
@@ -168,7 +133,6 @@ export function NutriMatchProvider({ children }: { children: ReactNode }) {
       if (!next) {
         loadedFor.current = null;
         setProfile(defaultProfile);
-        setHistory([]);
         setReady(true);
       }
     });
@@ -251,36 +215,10 @@ export function NutriMatchProvider({ children }: { children: ReactNode }) {
     if (previous) await supabase.storage.from("avatars").remove([previous]);
   }, [userId, profile.avatarPath, saveProfile]);
 
-  const recordScan = useCallback(
-    (entry: {
-      barcode: string;
-      name: string | null;
-      brand: string | null;
-      imageUrl: string | null;
-    }) => {
-      if (!userId) return;
-      setHistory((old) => {
-        const next = [
-          { ...entry, goal: profile.goal, scannedAt: new Date().toISOString() },
-          ...old.filter((e) => e.barcode !== entry.barcode),
-        ].slice(0, 25);
-        localStorage.setItem(historyKey(userId), JSON.stringify(next));
-        return next;
-      });
-    },
-    [userId, profile.goal],
-  );
-
-  const clearHistory = useCallback(() => {
-    setHistory([]);
-    if (userId) localStorage.removeItem(historyKey(userId));
-  }, [userId]);
-
   const signOut = useCallback(async () => {
     await supabase.auth.signOut();
     loadedFor.current = null;
     setProfile(defaultProfile);
-    setHistory([]);
   }, []);
 
   const value = useMemo(
@@ -288,26 +226,12 @@ export function NutriMatchProvider({ children }: { children: ReactNode }) {
       ready,
       session,
       profile,
-      history,
       saveProfile,
       uploadAvatar,
       removeAvatar,
-      recordScan,
-      clearHistory,
       signOut,
     }),
-    [
-      ready,
-      session,
-      profile,
-      history,
-      saveProfile,
-      uploadAvatar,
-      removeAvatar,
-      recordScan,
-      clearHistory,
-      signOut,
-    ],
+    [ready, session, profile, saveProfile, uploadAvatar, removeAvatar, signOut],
   );
 
   return <NutriMatchContext.Provider value={value}>{children}</NutriMatchContext.Provider>;

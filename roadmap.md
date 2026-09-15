@@ -27,3 +27,12 @@ Frozen V1 architecture, product rules and guardrails are documented in `AGENTS.m
   Confirm whether the density components should be weight-adjusted for drinks.
 - Scoring for the remaining onboarding goals (maintain weight, gain weight, more protein, less sodium)
   is not implemented yet.
+
+## Prompt 4 — Scan History (in progress)
+- [ ] `scan_history` table (one row per user+barcode, owner-only RLS, minimal display data).
+- [ ] Server functions: record scan (upsert), list history, clear history.
+- [ ] Remove the localStorage history implementation entirely (no backfill).
+- [ ] Record only scan-originated navigations (router state from /scan), not reopens,
+      Better Matches, direct URLs, refreshes or search picks.
+- [ ] History page: DB-backed list, date + time, empty state, Clear kept.
+- [ ] Tests for upsert/order/origin/isolation/clear.

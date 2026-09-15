@@ -1,11 +1,10 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
   AlertTriangle,
   ArrowLeft,
-  
   ImageOff,
   Info,
   PackageSearch,
@@ -16,6 +15,8 @@ import {
 import { AppShell } from "@/components/app-shell";
 import { BetterMatches } from "@/components/better-matches";
 import { getAlternatives, lookupProduct } from "@/lib/food.functions";
+import { recordScan } from "@/lib/history.functions";
+import { consumeScanToken } from "@/lib/history/origin";
 import { hasAddedSugarIngredient } from "@/lib/food/added-sugars";
 import {
   nutrientLabels,
@@ -171,17 +172,24 @@ const format = (key: NutrientKey, value: number | null | undefined) =>
   value === null || value === undefined ? UNAVAILABLE : `${value} ${nutrientLabels[key].unit}`;
 
 function Found({ product }: { product: FoodProduct }) {
-  const { profile, recordScan } = useNutriMatch();
+  const { profile } = useNutriMatch();
   const navigate = useNavigate();
+  const scanToken = useRouterState({ select: (s) => s.location.state.scanToken });
+  const saveScan = useServerFn(recordScan);
 
+  // History is written only when this page was opened by a real barcode scan.
+  // Reopening from history, opening a Better Match, a direct URL and a refresh
+  // all leave the stored scan time untouched.
   useEffect(() => {
-    recordScan({
-      barcode: product.barcode,
-      name: product.name,
-      brand: product.brand,
-      imageUrl: product.imageUrl,
-    });
-    // Record once per product opened.
+    if (!consumeScanToken(scanToken, product.barcode)) return;
+    void saveScan({
+      data: {
+        barcode: product.barcode,
+        name: product.name,
+        brand: product.brand,
+        imageUrl: product.imageUrl,
+      },
+    }).catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [product.barcode]);
 
@@ -258,10 +266,13 @@ function Found({ product }: { product: FoodProduct }) {
 
       <PortionComparison analysis={analysis} servingSize={product.servingSize} />
 
-
       <section className="card-soft mt-4 p-6">
         <h2 className="font-display text-sm font-semibold">Nutrition facts</h2>
-        <NutritionTable per100={per100} perServing={perServing} hasServingColumn={hasServingColumn} />
+        <NutritionTable
+          per100={per100}
+          perServing={perServing}
+          hasServingColumn={hasServingColumn}
+        />
         {per100.addedSugars === null &&
           perServing.addedSugars === null &&
           hasAddedSugarIngredient(product.ingredientsText) && (
@@ -355,7 +366,6 @@ function FitSection({ fit, product }: { fit: ProductScore; product: FoodProduct 
           </article>
         ))}
       </div>
-
     </section>
   );
 }
@@ -385,7 +395,9 @@ function CalculationDetails({ fit, product }: { fit: ProductScore; product: Food
                 {goal.score === null
                   ? `${statusText[goal.status]} — left out of the fit number.`
                   : `${goal.score}/100 · ${goal.label}.`}{" "}
-                {goal.used.length ? `Values used: ${goal.used.join("; ")}.` : "No values available."}
+                {goal.used.length
+                  ? `Values used: ${goal.used.join("; ")}.`
+                  : "No values available."}
               </p>
             </div>
           ))}
@@ -408,7 +420,6 @@ function CalculationDetails({ fit, product }: { fit: ProductScore; product: Food
     </section>
   );
 }
-
 
 function GoalScoreCard({ goal, fit }: { goal: GoalScore; fit: ProductScore }) {
   return (
@@ -506,7 +517,8 @@ function PortionComparison({
       <p className="eyebrow mt-3 text-primary">Still want it?</p>
       <h2 className="font-display mt-2 text-lg font-semibold">A portion comparison</h2>
       <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-        See how the nutrition changes with half a serving. This is a comparison, not a recommendation.
+        See how the nutrition changes with half a serving. This is a comparison, not a
+        recommendation.
       </p>
       <div className="mt-5 grid grid-cols-2 overflow-hidden rounded-xl border border-border">
         <div className="border-r border-border bg-surface p-4">
