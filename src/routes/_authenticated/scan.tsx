@@ -3,6 +3,7 @@ import { useCallback, useState } from "react";
 import { Loader2, Search } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { BarcodeScanner } from "@/components/barcode-scanner";
+import { createScanToken } from "@/lib/history/origin";
 
 export const Route = createFileRoute("/_authenticated/scan")({
   head: () => ({
@@ -34,7 +35,12 @@ function ScanPage() {
   const open = useCallback(
     (barcode: string) => {
       setHandling(true);
-      void navigate({ to: "/product/$barcode", params: { barcode } });
+      // Marks this navigation as a genuine scan so history records it once.
+      void navigate({
+        to: "/product/$barcode",
+        params: { barcode },
+        state: (prev) => ({ ...prev, scanToken: createScanToken(barcode) }),
+      });
     },
     [navigate],
   );

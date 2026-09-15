@@ -171,17 +171,24 @@ const format = (key: NutrientKey, value: number | null | undefined) =>
   value === null || value === undefined ? UNAVAILABLE : `${value} ${nutrientLabels[key].unit}`;
 
 function Found({ product }: { product: FoodProduct }) {
-  const { profile, recordScan } = useNutriMatch();
+  const { profile } = useNutriMatch();
   const navigate = useNavigate();
+  const scanToken = useRouterState({ select: (s) => s.location.state.scanToken });
+  const saveScan = useServerFn(recordScan);
 
+  // History is written only when this page was opened by a real barcode scan.
+  // Reopening from history, opening a Better Match, a direct URL and a refresh
+  // all leave the stored scan time untouched.
   useEffect(() => {
-    recordScan({
-      barcode: product.barcode,
-      name: product.name,
-      brand: product.brand,
-      imageUrl: product.imageUrl,
-    });
-    // Record once per product opened.
+    if (!consumeScanToken(scanToken, product.barcode)) return;
+    void saveScan({
+      data: {
+        barcode: product.barcode,
+        name: product.name,
+        brand: product.brand,
+        imageUrl: product.imageUrl,
+      },
+    }).catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [product.barcode]);
 
