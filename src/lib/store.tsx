@@ -55,13 +55,8 @@ type Ctx = {
 
 const NutriMatchContext = createContext<Ctx | null>(null);
 
-/** Keeps goals/goal consistent and inside the 1–3 range. */
-function normalizeGoals(list: unknown): GoalId[] {
-  const arr = (Array.isArray(list) ? list : [])
-    .filter((g): g is GoalId => typeof g === "string" && validGoals.has(g))
-    .slice(0, MAX_GOALS);
-  return arr.length ? arr : [];
-}
+/** Shared rule: known goal ids only, de-duplicated, at most three. */
+const normalizeGoals = normalizeGoalSelection;
 
 type Row = {
   name: string | null;
