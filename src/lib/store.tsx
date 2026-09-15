@@ -10,25 +10,22 @@ import {
 } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
-import { goals as allGoals, type GoalId } from "./nutrimatch";
+import type { GoalId } from "./nutrimatch";
+import { MAX_GOALS, normalizeGoalSelection } from "./profile-rules";
 
-export const MAX_GOALS = 3;
+export { MAX_GOALS };
 
 export type Profile = {
   name: string;
   email: string;
   age: number | null;
   country: string;
-  /** 1–3 goals, ordered by the user's own priority. */
+  /** 1–3 goals, ordered by the user's own priority. The only goal source. */
   goals: GoalId[];
-  /** Primary goal — always goals[0]. Kept for features that read a single goal. */
-  goal: GoalId;
   avatarPath: string | null;
   avatarUrl: string | null;
   onboarded: boolean;
 };
-
-const validGoals = new Set(allGoals.map((g) => g.id as string));
 
 export const defaultProfile: Profile = {
   name: "",
@@ -36,7 +33,6 @@ export const defaultProfile: Profile = {
   age: null,
   country: "",
   goals: [],
-  goal: "less-sugar",
   avatarPath: null,
   avatarUrl: null,
   onboarded: false,
