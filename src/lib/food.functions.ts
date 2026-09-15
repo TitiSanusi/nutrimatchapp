@@ -1,5 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import type { LookupOutcome, SearchOutcome } from "./food/types";
+import type { GoalId } from "./nutrimatch";
+import type { AlternativesOutcome } from "./recommend/types";
 
 /**
  * Server-side wrappers around the food-data layer, so the app never talks to a
@@ -26,4 +28,19 @@ export const searchProducts = createServerFn({ method: "GET" })
     if (!data.query.trim()) return { status: "ok", results: [] };
     const { searchFoods } = await import("./food/index");
     return searchFoods(data.query, data.country);
+  });
+
+export const getAlternatives = createServerFn({ method: "GET" })
+  .inputValidator((input: { barcode: string; goals?: string[]; country?: string }) => {
+    const barcode = String(input?.barcode ?? "").trim();
+    if (!/^\d{6,14}$/.test(barcode)) throw new Error("Invalid barcode");
+    return {
+      barcode,
+      goals: (Array.isArray(input?.goals) ? input.goals : []).slice(0, 6).map(String),
+      country: input?.country ? String(input.country).slice(0, 60) : undefined,
+    };
+  })
+  .handler(async ({ data }): Promise<AlternativesOutcome> => {
+    const { findAlternatives } = await import("./recommend/alternatives.server");
+    return findAlternatives(data.barcode, data.goals as GoalId[], data.country ?? null);
   });
