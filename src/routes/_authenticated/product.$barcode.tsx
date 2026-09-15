@@ -14,7 +14,8 @@ import {
   Search,
 } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
-import { lookupProduct } from "@/lib/food.functions";
+import { BetterMatches } from "@/components/better-matches";
+import { getAlternatives, lookupProduct } from "@/lib/food.functions";
 import { hasAddedSugarIngredient } from "@/lib/food/added-sugars";
 import {
   nutrientLabels,
@@ -191,6 +192,16 @@ function Found({ product }: { product: FoodProduct }) {
   );
 
   const myGoals = profile.goals.length ? profile.goals : [profile.goal];
+  const fetchAlternatives = useServerFn(getAlternatives);
+  const alternatives = useQuery({
+    queryKey: ["alternatives", product.barcode, myGoals.join(","), profile.country],
+    queryFn: () =>
+      fetchAlternatives({
+        data: { barcode: product.barcode, goals: myGoals, country: profile.country || undefined },
+      }),
+    staleTime: 30 * 60 * 1000,
+    retry: 0,
+  });
   const analysis = analyzeProductFit(product, myGoals);
   const fit = scoreProductFit(product, myGoals);
 
