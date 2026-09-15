@@ -438,10 +438,9 @@ function compactStatus(goal: GoalScore) {
 function consumerExplanation(goal: GoalScore, fit: ProductScore) {
   if (goal.goalId === "less-sugar" && goal.status === "works_against_uncertain") {
     const totalSugar = goal.used.find((value) => value.startsWith("Total sugars "));
-    const context = totalSugar
-      ? `${totalSugar.replace("Total sugars", "Total sugar")}; `
-      : "";
-    return `${context}added-sugar ingredients are present, but the exact added-sugar amount is unavailable.`;
+    const amount = totalSugar?.slice("Total sugars ".length);
+    const context = amount ? `${amount.replace(" per ", " total sugar per ")}. ` : "";
+    return `${context}Added-sugar ingredients are present, but the exact added-sugar amount is unavailable.`;
   }
 
   if (goal.goalId === "more-fibre" && goal.status === "no_contribution") {
@@ -465,10 +464,7 @@ function consumerExplanation(goal: GoalScore, fit: ProductScore) {
     if (energyDetail) return `Based on ${energyDetail}, protein density, and fibre density.`;
   }
 
-  return goal.explanation.replace(
-    " That is reported data, not missing data.",
-    "",
-  );
+  return goal.explanation.split(" That is reported data")[0];
 }
 
 function PortionComparison({
