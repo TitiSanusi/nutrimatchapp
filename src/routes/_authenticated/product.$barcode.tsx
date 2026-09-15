@@ -261,32 +261,7 @@ function Found({ product }: { product: FoodProduct }) {
 
       <section className="card-soft mt-4 p-6">
         <h2 className="font-display text-sm font-semibold">Nutrition facts</h2>
-        <div className="mt-4 overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="text-left text-xs text-muted-foreground">
-                <th className="pb-2 font-medium">Nutrient</th>
-                <th className="pb-2 text-right font-medium">Per 100 g/ml</th>
-                {hasServingColumn && <th className="pb-2 text-right font-medium">Per serving</th>}
-              </tr>
-            </thead>
-            <tbody>
-              {nutrientOrder.map((key) => (
-                <tr key={key} className="border-t border-border">
-                  <td className="py-2.5">{nutrientLabels[key].label}</td>
-                  <td className="py-2.5 text-right tabular-nums text-muted-foreground">
-                    {format(key, per100[key])}
-                  </td>
-                  {hasServingColumn && (
-                    <td className="py-2.5 text-right tabular-nums text-muted-foreground">
-                      {format(key, perServing[key])}
-                    </td>
-                  )}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <NutritionTable per100={per100} perServing={perServing} hasServingColumn={hasServingColumn} />
         {per100.addedSugars === null &&
           perServing.addedSugars === null &&
           hasAddedSugarIngredient(product.ingredientsText) && (
