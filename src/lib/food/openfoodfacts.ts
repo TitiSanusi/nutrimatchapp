@@ -25,7 +25,9 @@ const FIELDS = [
   "ingredients_text",
   "allergens_tags",
   "categories",
+  "categories_tags",
   "countries",
+  "countries_tags",
   "nutriments",
   "nova_group",
   "nutriscore_grade",
@@ -73,6 +75,10 @@ const list = (v: unknown): string[] => {
         .filter(Boolean)
     : [];
 };
+
+/** Provider tags kept verbatim (language prefix intact) for category matching. */
+const rawTags = (v: unknown): string[] =>
+  Array.isArray(v) ? v.filter((x): x is string => typeof x === "string" && x.length > 0) : [];
 
 type Nutriments = Record<string, unknown>;
 
@@ -142,6 +148,8 @@ function mapProduct(raw: Record<string, unknown>, barcode: string): FoodProduct 
     allergens: list(raw["allergens_tags"]),
     categories: list(raw["categories"]),
     countries: list(raw["countries"]),
+    categoryTags: rawTags(raw["categories_tags"]),
+    countryTags: rawTags(raw["countries_tags"]),
     nutrition: {
       per100g: nutrients(n, "_100g", servingAmount, ingredientsText),
       perServing: nutrients(n, "_serving", servingAmount, ingredientsText),
