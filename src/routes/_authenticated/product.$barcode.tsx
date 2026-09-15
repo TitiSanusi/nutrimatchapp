@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -16,6 +16,8 @@ import {
 import { AppShell } from "@/components/app-shell";
 import { BetterMatches } from "@/components/better-matches";
 import { getAlternatives, lookupProduct } from "@/lib/food.functions";
+import { recordScan } from "@/lib/history.functions";
+import { consumeScanToken } from "@/lib/history/origin";
 import { hasAddedSugarIngredient } from "@/lib/food/added-sugars";
 import {
   nutrientLabels,
