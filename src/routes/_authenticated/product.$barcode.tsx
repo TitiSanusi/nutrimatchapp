@@ -239,7 +239,12 @@ function Found({ product }: { product: FoodProduct }) {
 
       <FitSection fit={fit} product={product} />
 
+      <BetterMatches outcome={alternatives.data} loading={alternatives.isPending} />
+
+      <CalculationDetails fit={fit} product={product} />
+
       <PortionComparison analysis={analysis} servingSize={product.servingSize} />
+
 
       <section className="card-soft mt-4 p-6">
         <h2 className="font-display text-sm font-semibold">Nutrition facts</h2>
