@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
@@ -261,32 +261,7 @@ function Found({ product }: { product: FoodProduct }) {
 
       <section className="card-soft mt-4 p-6">
         <h2 className="font-display text-sm font-semibold">Nutrition facts</h2>
-        <div className="mt-4 overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="text-left text-xs text-muted-foreground">
-                <th className="pb-2 font-medium">Nutrient</th>
-                <th className="pb-2 text-right font-medium">Per 100 g/ml</th>
-                {hasServingColumn && <th className="pb-2 text-right font-medium">Per serving</th>}
-              </tr>
-            </thead>
-            <tbody>
-              {nutrientOrder.map((key) => (
-                <tr key={key} className="border-t border-border">
-                  <td className="py-2.5">{nutrientLabels[key].label}</td>
-                  <td className="py-2.5 text-right tabular-nums text-muted-foreground">
-                    {format(key, per100[key])}
-                  </td>
-                  {hasServingColumn && (
-                    <td className="py-2.5 text-right tabular-nums text-muted-foreground">
-                      {format(key, perServing[key])}
-                    </td>
-                  )}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <NutritionTable per100={per100} perServing={perServing} hasServingColumn={hasServingColumn} />
         {per100.addedSugars === null &&
           perServing.addedSugars === null &&
           hasAddedSugarIngredient(product.ingredientsText) && (
@@ -558,6 +533,86 @@ function PortionComparison({
         </div>
       </div>
     </section>
+  );
+}
+
+function NutritionTable({
+  per100,
+  perServing,
+  hasServingColumn,
+}: {
+  per100: Partial<Record<NutrientKey, number | null>>;
+  perServing: Partial<Record<NutrientKey, number | null>>;
+  hasServingColumn: boolean;
+}) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const updateFade = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const maxScroll = el.scrollWidth - el.clientWidth;
+    setCanScrollRight(maxScroll > 4 && el.scrollLeft < maxScroll - 4);
+  }, []);
+
+  useEffect(() => {
+    updateFade();
+    const el = scrollRef.current;
+    if (!el) return;
+    el.addEventListener("scroll", updateFade, { passive: true });
+    window.addEventListener("resize", updateFade);
+    const observer = new ResizeObserver(updateFade);
+    observer.observe(el);
+    if (el.firstElementChild) observer.observe(el.firstElementChild);
+    return () => {
+      el.removeEventListener("scroll", updateFade);
+      window.removeEventListener("resize", updateFade);
+      observer.disconnect();
+    };
+  }, [updateFade]);
+
+  return (
+    <div className="relative mt-4">
+      <div ref={scrollRef} className="overflow-x-auto">
+        <table className="w-full table-fixed text-sm">
+          <colgroup>
+            <col className={hasServingColumn ? "w-[42%]" : "w-[55%]"} />
+            <col className={hasServingColumn ? "w-[29%]" : "w-[45%]"} />
+            {hasServingColumn && <col className="w-[29%]" />}
+          </colgroup>
+          <thead>
+            <tr className="text-left text-xs text-muted-foreground">
+              <th className="min-w-0 pb-2 font-medium">Nutrient</th>
+              <th className="min-w-0 pb-2 text-right font-medium">Per 100 g/ml</th>
+              {hasServingColumn && (
+                <th className="min-w-0 pb-2 text-right font-medium">Per serving</th>
+              )}
+            </tr>
+          </thead>
+          <tbody>
+            {nutrientOrder.map((key) => (
+              <tr key={key} className="border-t border-border">
+                <td className="py-2.5 pr-2 break-words">{nutrientLabels[key].label}</td>
+                <td className="py-2.5 text-right break-words tabular-nums text-muted-foreground">
+                  {format(key, per100[key])}
+                </td>
+                {hasServingColumn && (
+                  <td className="py-2.5 text-right break-words tabular-nums text-muted-foreground">
+                    {format(key, perServing[key])}
+                  </td>
+                )}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div
+        aria-hidden
+        className={`pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-card to-transparent transition-opacity duration-200 ${
+          canScrollRight ? "opacity-100" : "opacity-0"
+        }`}
+      />
+    </div>
   );
 }
 
