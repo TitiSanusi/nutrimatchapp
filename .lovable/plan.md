@@ -1,93 +1,118 @@
-# Better matches for your goals — implementation plan
+# Prompt 4 — Scan History (technical plan)
 
-Goal: suggest up to 3 comparable products that fit the user's selected goals better, reusing the approved scoring engine unchanged. "Better" is decided goal-by-goal, never by a higher overall average alone.
+## What exists today (inspection findings)
 
-## New files / changes
+**How signed-in users are identified.** Supabase auth via `src/lib/store.tsx`
+(`NutriMatchProvider`): `supabase.auth.getSession()` + `onAuthStateChange` give a
+`session`, and `session.user.id` is the user identity. Every page that needs a signed-in
+user lives under `src/routes/_authenticated/`, gated by the managed `route.tsx` layout.
 
-| File | Role |
+**Persistent storage already available.** Lovable Cloud (Postgres) with two tables:
+`profiles` (name, age, country, `goals[]`, avatar_path, onboarded — owner-only RLS) and
+`product_submissions` (owner-only RLS). Private `avatars` storage bucket. There is a
+`set_updated_at()` trigger function and a `handle_new_user()` signup trigger already.
+
+**History today is NOT persistent.** `store.tsx` keeps history in `localStorage` under
+`nutrimatch.history.<userId>`, capped at 25 entries, and it stores the goal that was
+active at scan time (`ScanEntry.goal`). Consequences: it does not survive a device
+change, it is lost when browser storage is cleared, and the History list labels each
+item with a stale goal. `src/routes/_authenticated/history.tsx` renders that list and a
+"Clear" action. `recordScan` is called from `product.$barcode.tsx` in an effect once per
+opened product.
+
+**Scan/product flow.** `/scan` decodes a barcode, then navigates to
+`/product/$barcode`, which calls the `lookupProduct` server function; on `found` it
+renders `Found`, which scores with `scoreProductFit` against the profile's *current*
+goals and requests Better Matches through `getAlternatives`.
+
+## Proposed change
+
+Move history from browser storage into the database, keep everything else as-is.
+
+### Data model — one new table, `public.scan_history`
+
+| column | purpose |
 | --- | --- |
-| `src/lib/recommend/config.ts` (new) | Recommendation-only thresholds: meaningful-difference gap (10 points), max candidates fetched (8), max results (3), concurrency (3), cache TTLs, ranking weights. Deliberately separate from `src/lib/scoring/config.ts`. |
-| `src/lib/food/similar.ts` (new) | Only module that knows category search. Builds candidate barcode shortlist from `categories_tags` + `countries_tags`, runs the widening ladder, reports which rung was used. |
-| `src/lib/recommend/compare.ts` (new) | Pure goal-by-goal comparison + Better Match eligibility + ranking. No network, no scoring rules. |
-| `src/lib/food.functions.ts` (edit) | New `getAlternatives` server function. |
-| `src/lib/recommend/cache.server.ts` (new) | Server-side TTL cache for candidate lists and fetched candidate products. |
-| `src/components/better-matches.tsx` (new) | UI section. |
-| `src/routes/_authenticated/product.$barcode.tsx` (edit) | Render the section below the goal cards. |
-| `tests/recommend.test.ts` (new) | Comparison/eligibility/ranking unit tests. |
-| `tests/real-products.test.ts` (edit) | Live invariant checks for alternatives. |
+| `id` uuid pk | row id |
+| `user_id` uuid not null → `auth.users` | owner |
+| `barcode` text not null | the product |
+| `product_name` text null | minimal display data |
+| `brand` text null | minimal display data |
+| `image_url` text null | minimal display data |
+| `last_scanned_at` timestamptz not null default now() | most-recent scan time, used for ordering |
+| `created_at` / `updated_at` timestamptz | standard, with the existing `set_updated_at` trigger |
 
-Untouched: `src/lib/scoring/*`, `src/lib/food/normalize.ts`, `added-sugars.ts`, `energy.ts`.
+- `unique (user_id, barcode)` — one visible row per product per user.
+- index on `(user_id, last_scanned_at desc)` for the ordered list.
+- No score, no label, no goals, no nutrition values are stored. Cached name/brand/image
+  are display-only convenience fields, refreshed on each re-scan.
 
-## Retrieval flow
+### Security / per-user isolation
 
-1. Result page has the scanned product + `scoreProductFit` result already.
-2. `getAlternatives({ barcode, goals })` runs server-side.
-3. `similar.ts` picks the most specific shared `categories_tags` entry and searches with the market filter, returning barcodes + names only (search index lacks serving size and ingredients, so it is shortlist-only).
-4. Exclude the scanned barcode and anything already cached as unscorable.
-5. Fetch at most 8 shortlisted barcodes through the existing `lookupBarcode` (full validation pipeline), concurrency 3, per-candidate failures skipped, never fatal.
-6. Score each with `scoreProductFit(candidate, goals)` — same engine, same config.
-7. Drop candidates with no numeric or qualitative result on any selected goal.
-8. Compare, filter to Better Matches, rank, return top 3 plus status and caveats.
+RLS enabled, `authenticated`-only policies scoped to `auth.uid() = user_id` for read,
+insert, update and delete; `GRANT SELECT, INSERT, UPDATE, DELETE ... TO authenticated`
+and `GRANT ALL ... TO service_role` in the same migration. No `anon` grant. A user can
+never see or touch another user's rows.
 
-## Widening ladder
+### When History is written
 
-1. Most specific shared category + market.
-2. Next-broader category tag + market.
-3. Most specific category, no country filter → response flags `marketUnrestricted: true` so UI shows the caveat.
+Only after a successful product identification: in `product.$barcode.tsx`, the existing
+`recordScan` effect fires only inside `Found`, i.e. after `lookupProduct` returned
+`status: "found"`. Not-found, unavailable and error states write nothing. That trigger
+point does not change — only its implementation does.
 
-Advance a rung only when fewer than 3 eligible Better Matches survive. Record the rung used for the transparency section.
+### Duplicate handling (upsert)
 
-## Caching (server-side, in-memory TTL)
+`recordScan` becomes an async write that upserts on the `(user_id, barcode)` conflict
+target, setting `last_scanned_at = now()` plus the refreshed name/brand/image. A repeat
+scan therefore updates the timestamp and jumps to the top of the list instead of adding
+a second visible item. Ordering is `last_scanned_at desc`.
 
-- Candidate list, keyed `categoryTag|country|rung`: 6 hours.
-- Fully fetched + validated candidate product, keyed by barcode: 12 hours.
-- Negative cache for barcodes that failed lookup or validation: 1 hour.
-- Scoring is cheap and goal-dependent, so scores are computed per request, never cached.
+### Reopening an item
 
-## Comparison model (per selected goal)
+Unchanged: each row links to `/product/$barcode` with `<Link to="/product/$barcode"
+params={{ barcode }}>`. That route re-fetches the current validated product data and
+scores it with `scoreProductFit` against the profile's *current* goals, and re-runs
+Better Matches. So changing goals and reopening an old scan shows the new result —
+nothing personalized is frozen in History.
 
-- Both numeric: candidate − scanned ≥ +10 → Better; −9..+9 → Similar; ≤ −10 → Worse. Threshold lives in `recommend/config.ts`.
-- Qualitative states are never converted to numbers.
-- Reduce added sugar qualitative rules: candidate credible validated 0 g (score 100) vs scanned `works_against_uncertain` or `works_against` → Better. Candidate `works_against_uncertain` vs scanned credible 0 g → Worse. Same qualitative state on both → Similar.
-- `no_contribution` vs `no_contribution` → Similar. Numeric vs `no_contribution` on a contribution goal (fibre): numeric > 0 → Better; reverse → Worse.
-- Any goal where either side is `limited_data` → `Incomparable`. Never counted as an improvement or a regression.
+### Migration required?
 
-## Better Match eligibility
+Yes — one migration creating `scan_history` with grants, RLS, policies, the unique
+constraint, the index and the `updated_at` trigger. No changes to `profiles`,
+`product_submissions`, storage, or auth.
 
-Include a candidate only if it has ≥1 goal marked Better, AND no goal marked Worse where both sides had reliable comparable evidence. A single meaningful regression disqualifies it regardless of overall Fit.
+### Persistence across sessions and devices
 
-## Ranking (applied to eligible candidates)
+Because rows are keyed by `auth.uid()` in Postgres, signing out and back in — on any
+device — reads the same list. The list is fetched with TanStack Query keyed by user id,
+so it loads on demand rather than being held only in provider state.
 
-Ordered signals: (1) number of Better goals, then summed improvement strength; (2) selected-goal data coverage (goals with comparable evidence); (3) overall NutriMatch Fit; (4) category specificity (rung used, deeper is better); (5) market relevance (in-market before out-of-market). Take the top 3.
+## Implementation outline
 
-## Market handling
+1. Migration: `public.scan_history` as above.
+2. `src/lib/history.functions.ts` — two server functions behind `requireSupabaseAuth`:
+   `recordScan` (upsert, input-validated barcode + optional display fields) and
+   `listScanHistory` (ordered read, capped at a sensible page size).
+3. `src/lib/store.tsx` — `recordScan` calls the server function; drop the localStorage
+   read/write and the stale `goal` field from `ScanEntry`; `clearHistory` deletes the
+   user's rows. History list state moves out of the provider.
+4. `src/routes/_authenticated/history.tsx` — same visual card list, fed by
+   `useQuery(listScanHistory)`: image (or placeholder), product name, brand when
+   available, most-recent scan date **and time**, chevron affordance, existing empty
+   state with the "Scan a product" call to action. No filters, sorting, favourites,
+   trends or analytics.
+5. Bottom navigation already points at `/history` — untouched.
 
-Market = the product's `countries_tags` intersected with the user's onboarding country, defaulting to the user's country. Rungs 1–2 stay in-market. Rung 3 results carry a per-card caveat: "May not be available in your market."
+## Explicitly not changed
 
-## Failure / empty states
+`src/lib/scoring/*`, `src/lib/food/*` (validation/normalization), `src/lib/recommend/*`,
+`src/lib/product-fit.ts`, and the existing tests. History contains no scoring,
+validation, recommendation or nutrition logic of its own.
 
-- No eligible candidate, or a source failure: render the section with "We couldn't find a comparable product with enough reliable data yet." Never pad with weak, incomparable, or unscorable products.
-- Source outage: same empty copy, no error surface, scan result unaffected.
-- Loading: skeleton; the section never blocks the rest of the page.
+## Open question
 
-## UI structure
-
-Section "Better matches for your goals" with supporting copy "Similar products that may better fit the goals you selected." Placed after the goal cards, before "How NutriMatch calculated this".
-
-`BetterMatches` → up to 3 `AlternativeCard`: product image/name, NutriMatch Fit + label, strongest goal improvement chip, one-sentence "Why it may fit better", market caveat when applicable. Tapping opens `/product/$barcode`. Never the word "healthier". Existing visual identity and mobile layout preserved (status text wraps below titles as on goal cards).
-
-The transparency section gains a line for which category rung and market filter produced the alternatives.
-
-## Analytics events (to capture eventually)
-
-`alternatives_requested`, `alternatives_shown` (count, rung, marketUnrestricted), `alternatives_empty` (reason), `alternative_card_viewed`, `alternative_opened` (from barcode → to barcode, goal improved).
-
-## Automated tests
-
-Comparison unit tests: ≥+10 → Better; +9 / −9 → Similar; ≤−10 → Worse; limited data either side → Incomparable and never an improvement; credible 0 g added sugar vs uncertain → Better; uncertain vs credible 0 g → Worse; fibre numeric vs no contribution both directions.
-
-Eligibility/ranking: improvement on one goal with a regression on another comparable goal → excluded; improvement plus only Incomparable elsewhere → included; higher overall Fit cannot rescue a regressed candidate; ranking prefers more/stronger improvements, then coverage, then Fit, then specificity, then market; max 3 returned.
-
-Retrieval: scanned barcode always excluded; unscorable candidates dropped; lookup failures tolerated; lookup cap and concurrency respected; ladder advances only when short of results and flags `marketUnrestricted`; empty result returns the `not_enough_data` status.
-
-Live regression (network-skippable): for a scanned product with goals selected, every returned alternative is fully validated, scores through `scoreProductFit`, and satisfies the eligibility invariants — no expected scores hard-coded by barcode.
+The current localStorage history cannot be migrated server-side. Existing signed-in
+users would start with an empty History list unless we add a one-time client-side
+backfill that uploads whatever is in their browser on first load. Happy to include that
+small backfill or skip it — say which you prefer.
