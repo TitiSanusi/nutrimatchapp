@@ -5,7 +5,16 @@ import { AppShell } from "@/components/app-shell";
 import { Avatar, AvatarPicker } from "@/components/avatar";
 import { CountrySelect } from "@/components/country-select";
 import { goals, type GoalId } from "@/lib/nutrimatch";
-import { MAX_GOALS, useNutriMatch } from "@/lib/store";
+import { useNutriMatch } from "@/lib/store";
+import {
+  MAX_GOALS,
+  MAX_NAME_LENGTH,
+  isValidAge,
+  isValidCountry,
+  isValidGoalCount,
+  isValidName,
+  toggleGoalSelection,
+} from "@/lib/profile-rules";
 
 export const Route = createFileRoute("/_authenticated/profile")({
   head: () => ({
@@ -54,38 +63,27 @@ function ProfilePage() {
   const selectedGoals = goals.filter((g) => selected.includes(g.id));
 
   const toggleGoal = (id: GoalId) => {
-    setNotice("");
     setError("");
-    if (selected.includes(id)) {
-      if (selected.length === 1) {
-        setNotice("Keep at least one goal so results stay personal.");
-        return;
-      }
-      setSelected(selected.filter((g) => g !== id));
-      return;
-    }
-    if (selected.length >= MAX_GOALS) {
-      setNotice("You can choose up to three goals — deselect one first.");
-      return;
-    }
-    setSelected([...selected, id]);
+    const next = toggleGoalSelection(selected, id, { requireOne: true });
+    setSelected(next.selected);
+    setNotice(next.notice);
   };
 
   const save = async () => {
     const ageNumber = Number(age);
-    if (name.trim().length < 2) {
+    if (!isValidName(name)) {
       setError("Enter your name.");
       return;
     }
-    if (!/^\d{1,3}$/.test(age.trim()) || ageNumber < 13 || ageNumber > 120) {
+    if (!isValidAge(age)) {
       setError("Enter an age between 13 and 120.");
       return;
     }
-    if (!country) {
+    if (!isValidCountry(country)) {
       setError("Choose your country.");
       return;
     }
-    if (selected.length < 1) {
+    if (!isValidGoalCount(selected)) {
       setError("Pick at least one goal.");
       return;
     }
@@ -93,7 +91,7 @@ function ProfilePage() {
     setSaving(true);
     try {
       await saveProfile({
-        name: name.trim().slice(0, 60),
+        name: name.trim().slice(0, MAX_NAME_LENGTH),
         age: ageNumber,
         country,
         goals: selected,
