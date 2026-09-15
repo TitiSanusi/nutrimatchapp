@@ -363,7 +363,14 @@ function FitSection({ fit, product }: { fit: ProductScore; product: FoodProduct 
         ))}
       </div>
 
-      <details className="border-t border-border">
+    </section>
+  );
+}
+
+function CalculationDetails({ fit, product }: { fit: ProductScore; product: FoodProduct }) {
+  return (
+    <section className="card-soft mt-4 overflow-hidden">
+      <details>
         <summary className="cursor-pointer p-4 text-sm font-semibold sm:p-6">
           How NutriMatch calculated this
         </summary>
@@ -396,6 +403,10 @@ function FitSection({ fit, product }: { fit: ProductScore; product: FoodProduct 
             </div>
           ))}
           <p>
+            NutriMatch evaluates how well a product fits the goals you selected. It does not declare
+            a food universally healthy or unhealthy.
+          </p>
+          <p>
             Values the source doesn't state are shown as unavailable — they are never estimated, and
             no serving size is invented. Label data from {product.origin.providerLabel}.
           </p>
@@ -404,6 +415,7 @@ function FitSection({ fit, product }: { fit: ProductScore; product: FoodProduct 
     </section>
   );
 }
+
 
 function GoalScoreCard({ goal, fit }: { goal: GoalScore; fit: ProductScore }) {
   return (
