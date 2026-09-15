@@ -14,7 +14,8 @@ import {
   Search,
 } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
-import { lookupProduct } from "@/lib/food.functions";
+import { BetterMatches } from "@/components/better-matches";
+import { getAlternatives, lookupProduct } from "@/lib/food.functions";
 import { hasAddedSugarIngredient } from "@/lib/food/added-sugars";
 import {
   nutrientLabels,
@@ -191,6 +192,18 @@ function Found({ product }: { product: FoodProduct }) {
   );
 
   const myGoals = profile.goals.length ? profile.goals : [profile.goal];
+  const fetchAlternatives = useServerFn(getAlternatives);
+  const alternatives = useQuery({
+    queryKey: ["alternatives", product.barcode, myGoals.join(","), profile.country],
+    queryFn: () =>
+      fetchAlternatives({
+        data: profile.country
+          ? { barcode: product.barcode, goals: myGoals, country: profile.country }
+          : { barcode: product.barcode, goals: myGoals },
+      }),
+    staleTime: 30 * 60 * 1000,
+    retry: 0,
+  });
   const analysis = analyzeProductFit(product, myGoals);
   const fit = scoreProductFit(product, myGoals);
 
@@ -239,7 +252,12 @@ function Found({ product }: { product: FoodProduct }) {
 
       <FitSection fit={fit} product={product} />
 
+      <BetterMatches outcome={alternatives.data} loading={alternatives.isPending} />
+
+      <CalculationDetails fit={fit} product={product} />
+
       <PortionComparison analysis={analysis} servingSize={product.servingSize} />
+
 
       <section className="card-soft mt-4 p-6">
         <h2 className="font-display text-sm font-semibold">Nutrition facts</h2>
@@ -363,7 +381,14 @@ function FitSection({ fit, product }: { fit: ProductScore; product: FoodProduct 
         ))}
       </div>
 
-      <details className="border-t border-border">
+    </section>
+  );
+}
+
+function CalculationDetails({ fit, product }: { fit: ProductScore; product: FoodProduct }) {
+  return (
+    <section className="card-soft mt-4 overflow-hidden">
+      <details>
         <summary className="cursor-pointer p-4 text-sm font-semibold sm:p-6">
           How NutriMatch calculated this
         </summary>
@@ -396,6 +421,10 @@ function FitSection({ fit, product }: { fit: ProductScore; product: FoodProduct 
             </div>
           ))}
           <p>
+            NutriMatch evaluates how well a product fits the goals you selected. It does not declare
+            a food universally healthy or unhealthy.
+          </p>
+          <p>
             Values the source doesn't state are shown as unavailable — they are never estimated, and
             no serving size is invented. Label data from {product.origin.providerLabel}.
           </p>
@@ -404,6 +433,7 @@ function FitSection({ fit, product }: { fit: ProductScore; product: FoodProduct 
     </section>
   );
 }
+
 
 function GoalScoreCard({ goal, fit }: { goal: GoalScore; fit: ProductScore }) {
   return (

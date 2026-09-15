@@ -30,6 +30,10 @@ export type FoodProduct = {
   allergens: string[];
   categories: string[];
   countries: string[];
+  /** Normalized provider category tags (general → specific), e.g. `en:canned-tunas`. */
+  categoryTags?: string[];
+  /** Normalized provider country tags, e.g. `en:canada`. */
+  countryTags?: string[];
   nutrition: {
     per100g: NutrientValues;
     perServing: NutrientValues;

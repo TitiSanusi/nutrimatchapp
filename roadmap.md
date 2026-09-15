@@ -12,7 +12,12 @@
   transparency stays collapsed, and removed sections do not reappear under other headings.
 - [x] Run the complete test suite and document the before/after result-page structure.
 
+- [x] "Better matches for your goals" recommendations: category-similar candidates, market-only widening
+  (V1), strict goal-by-goal Better Match eligibility, ranking, empty state, tests.
+
 ## Open for product review
+- Recommendation caching is per-instance and in-memory only; the deployed serverless runtime does not
+  share or persist it, so it is not protection against the source's product-read limit.
 - Category classification falls back to the general packaged-food context when provider categories
   are unclear (e.g. Chips Ahoy Original). Category lists may need review per market.
 - Zero-calorie beverages cap at 50/100 for Lose weight because protein and fibre densities are 0.
