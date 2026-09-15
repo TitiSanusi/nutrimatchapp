@@ -561,9 +561,13 @@ function NutritionTable({
     if (!el) return;
     el.addEventListener("scroll", updateFade, { passive: true });
     window.addEventListener("resize", updateFade);
+    const observer = new ResizeObserver(updateFade);
+    observer.observe(el);
+    if (el.firstElementChild) observer.observe(el.firstElementChild);
     return () => {
       el.removeEventListener("scroll", updateFade);
       window.removeEventListener("resize", updateFade);
+      observer.disconnect();
     };
   }, [updateFade]);
 
