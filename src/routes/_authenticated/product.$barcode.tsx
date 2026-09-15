@@ -5,7 +5,6 @@ import { useServerFn } from "@tanstack/react-start";
 import {
   AlertTriangle,
   ArrowLeft,
-  
   ImageOff,
   Info,
   PackageSearch,
@@ -267,10 +266,13 @@ function Found({ product }: { product: FoodProduct }) {
 
       <PortionComparison analysis={analysis} servingSize={product.servingSize} />
 
-
       <section className="card-soft mt-4 p-6">
         <h2 className="font-display text-sm font-semibold">Nutrition facts</h2>
-        <NutritionTable per100={per100} perServing={perServing} hasServingColumn={hasServingColumn} />
+        <NutritionTable
+          per100={per100}
+          perServing={perServing}
+          hasServingColumn={hasServingColumn}
+        />
         {per100.addedSugars === null &&
           perServing.addedSugars === null &&
           hasAddedSugarIngredient(product.ingredientsText) && (
@@ -364,7 +366,6 @@ function FitSection({ fit, product }: { fit: ProductScore; product: FoodProduct 
           </article>
         ))}
       </div>
-
     </section>
   );
 }
@@ -394,7 +395,9 @@ function CalculationDetails({ fit, product }: { fit: ProductScore; product: Food
                 {goal.score === null
                   ? `${statusText[goal.status]} — left out of the fit number.`
                   : `${goal.score}/100 · ${goal.label}.`}{" "}
-                {goal.used.length ? `Values used: ${goal.used.join("; ")}.` : "No values available."}
+                {goal.used.length
+                  ? `Values used: ${goal.used.join("; ")}.`
+                  : "No values available."}
               </p>
             </div>
           ))}
@@ -417,7 +420,6 @@ function CalculationDetails({ fit, product }: { fit: ProductScore; product: Food
     </section>
   );
 }
-
 
 function GoalScoreCard({ goal, fit }: { goal: GoalScore; fit: ProductScore }) {
   return (
@@ -515,7 +517,8 @@ function PortionComparison({
       <p className="eyebrow mt-3 text-primary">Still want it?</p>
       <h2 className="font-display mt-2 text-lg font-semibold">A portion comparison</h2>
       <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-        See how the nutrition changes with half a serving. This is a comparison, not a recommendation.
+        See how the nutrition changes with half a serving. This is a comparison, not a
+        recommendation.
       </p>
       <div className="mt-5 grid grid-cols-2 overflow-hidden rounded-xl border border-border">
         <div className="border-r border-border bg-surface p-4">

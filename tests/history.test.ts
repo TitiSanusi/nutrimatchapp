@@ -1,5 +1,10 @@
 import { describe, expect, test } from "bun:test";
-import { applyScan, shouldRecordScan, sortHistory, type HistoryItem } from "../src/lib/history/policy";
+import {
+  applyScan,
+  shouldRecordScan,
+  sortHistory,
+  type HistoryItem,
+} from "../src/lib/history/policy";
 import { consumeScanToken, createScanToken } from "../src/lib/history/origin";
 
 /** Minimal in-memory Storage stand-in for the scan-origin token. */
@@ -43,7 +48,11 @@ class HistoryTable {
   }
 }
 
-const item = (barcode: string, lastScannedAt: string, name = `Product ${barcode}`): HistoryItem => ({
+const item = (
+  barcode: string,
+  lastScannedAt: string,
+  name = `Product ${barcode}`,
+): HistoryItem => ({
   barcode,
   name,
   brand: null,

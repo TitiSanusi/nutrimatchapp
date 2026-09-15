@@ -122,7 +122,6 @@ export function NutriMatchProvider({ children }: { children: ReactNode }) {
         await supabase.from("profiles").insert({ id, name: "" });
         setProfile({ ...defaultProfile, email });
       }
-      
     },
     [toProfile],
   );

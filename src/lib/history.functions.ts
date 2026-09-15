@@ -23,7 +23,12 @@ const text = (value: unknown, max: number): string | null => {
 export const recordScan = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
-    (input: { barcode: string; name?: string | null; brand?: string | null; imageUrl?: string | null }) => {
+    (input: {
+      barcode: string;
+      name?: string | null;
+      brand?: string | null;
+      imageUrl?: string | null;
+    }) => {
       const barcode = String(input?.barcode ?? "").trim();
       if (!/^\d{6,14}$/.test(barcode)) throw new Error("Invalid barcode");
       return {
