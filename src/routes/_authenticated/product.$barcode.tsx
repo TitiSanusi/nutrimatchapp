@@ -541,8 +541,8 @@ function NutritionTable({
   perServing,
   hasServingColumn,
 }: {
-  per100: Record<NutrientKey, number | null>;
-  perServing: Record<NutrientKey, number | null>;
+  per100: Partial<Record<NutrientKey, number | null>>;
+  perServing: Partial<Record<NutrientKey, number | null>>;
   hasServingColumn: boolean;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
