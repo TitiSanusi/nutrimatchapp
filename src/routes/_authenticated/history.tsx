@@ -27,7 +27,7 @@ export const Route = createFileRoute("/_authenticated/history")({
 });
 
 /** "12 Sept 2026 · 14:05" — kept short so it fits a mobile row. */
-export function formatScannedAt(iso: string) {
+function formatScannedAt(iso: string) {
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return "";
   return `${date.toLocaleDateString(undefined, {
