@@ -9,7 +9,7 @@
 
 export const RECOMMEND_CONFIG = {
   /** A goal difference of this many points or more counts as meaningful. */
-  meaningfulGapPoints: 10,
+  meaningfulGapPoints: 15,
   /** Qualitative improvements are treated as this much "strength" when ranking. */
   qualitativeImprovementStrength: 15,
   /** Maximum alternatives returned. Three is a ceiling, never a target. */
