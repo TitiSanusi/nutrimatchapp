@@ -68,22 +68,22 @@ describe("numeric goal comparison", () => {
   const cmp = (scanned: number, candidate: number) =>
     compareGoals(productScore([goal(g, scanned, "supports")]), productScore([goal(g, candidate, "supports")]), [g])[0]!;
 
-  it("treats a +10 point gap as better", () => {
-    expect(cmp(50, 60).verdict).toBe("better");
-    expect(cmp(50, 60).delta).toBe(10);
+  it("treats a +15 point gap as better", () => {
+    expect(cmp(50, 65).verdict).toBe("better");
+    expect(cmp(50, 65).delta).toBe(15);
   });
 
-  it("treats +9 and -9 as similar", () => {
-    expect(cmp(50, 59).verdict).toBe("similar");
-    expect(cmp(50, 41).verdict).toBe("similar");
+  it("treats +14 and -14 as similar", () => {
+    expect(cmp(50, 64).verdict).toBe("similar");
+    expect(cmp(50, 36).verdict).toBe("similar");
   });
 
-  it("treats a -10 point gap as worse", () => {
-    expect(cmp(50, 40).verdict).toBe("worse");
+  it("treats a -15 point gap as worse", () => {
+    expect(cmp(50, 35).verdict).toBe("worse");
   });
 
   it("keeps the meaningful gap configurable in recommendation config only", () => {
-    expect(RECOMMEND_CONFIG.meaningfulGapPoints).toBe(10);
+    expect(RECOMMEND_CONFIG.meaningfulGapPoints).toBe(15);
   });
 });
 
