@@ -348,7 +348,7 @@ function FitSection({ fit, product }: { fit: ProductScore; product: FoodProduct 
 
       <div className="space-y-2.5 border-t border-border p-4 sm:space-y-3 sm:p-6">
         {fit.goals.map((goal) => (
-          <GoalScoreCard key={goal.goalId} goal={goal} />
+          <GoalScoreCard key={goal.goalId} goal={goal} fit={fit} />
         ))}
         {fit.unscoredGoals.map((goal) => (
           <article key={goal.goalId} className="rounded-xl border border-border p-3.5 sm:p-4">
@@ -405,7 +405,7 @@ function FitSection({ fit, product }: { fit: ProductScore; product: FoodProduct 
   );
 }
 
-function GoalScoreCard({ goal }: { goal: GoalScore }) {
+function GoalScoreCard({ goal, fit }: { goal: GoalScore; fit: ProductScore }) {
   return (
     <article className="rounded-xl border border-border p-3.5 sm:p-4">
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-2">
@@ -421,7 +421,7 @@ function GoalScoreCard({ goal }: { goal: GoalScore }) {
         </p>
       </div>
       <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
-        {consumerExplanation(goal)}
+        {consumerExplanation(goal, fit)}
       </p>
     </article>
   );
@@ -435,13 +435,13 @@ function compactStatus(goal: GoalScore) {
   return statusText[goal.status];
 }
 
-function consumerExplanation(goal: GoalScore) {
+function consumerExplanation(goal: GoalScore, fit: ProductScore) {
   if (goal.goalId === "less-sugar" && goal.status === "works_against_uncertain") {
     const totalSugar = goal.used.find((value) => value.startsWith("Total sugars "));
     const context = totalSugar
-      ? `${totalSugar.replace("Total sugars ", "").replace(" perServing", " per serving")}. `
+      ? `${totalSugar.replace("Total sugars", "Total sugar")}; `
       : "";
-    return `${context}Added-sugar ingredients are present, but the exact added-sugar amount is unavailable.`;
+    return `${context}added-sugar ingredients are present, but the exact added-sugar amount is unavailable.`;
   }
 
   if (goal.goalId === "more-fibre" && goal.status === "no_contribution") {
@@ -457,7 +457,10 @@ function consumerExplanation(goal: GoalScore) {
     const fibre = goal.components.find((component) => component.label === "Fibre density");
     const energyDetail = energy?.detail.split(" · ")[0];
     if (energyDetail && protein?.score === 0 && fibre?.score === 0) {
-      return `${energyDetail} with no protein or fibre contribution.`;
+      const servingEnergy = fit.servingReliable ? fit.serving.values.energyKcal : null;
+      const energyText =
+        typeof servingEnergy === "number" ? `${servingEnergy} kcal per serving` : energyDetail;
+      return `${energyText} with no protein or fibre contribution.`;
     }
     if (energyDetail) return `Based on ${energyDetail}, protein density, and fibre density.`;
   }
