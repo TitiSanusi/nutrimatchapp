@@ -98,6 +98,42 @@ export type Database = {
         }
         Relationships: []
       }
+      scan_history: {
+        Row: {
+          barcode: string
+          brand: string | null
+          created_at: string
+          id: string
+          image_url: string | null
+          last_scanned_at: string
+          product_name: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          barcode: string
+          brand?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          last_scanned_at?: string
+          product_name?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          barcode?: string
+          brand?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          last_scanned_at?: string
+          product_name?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
