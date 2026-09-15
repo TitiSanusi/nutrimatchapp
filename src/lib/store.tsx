@@ -168,7 +168,6 @@ export function NutriMatchProvider({ children }: { children: ReactNode }) {
           ...prev,
           ...patch,
           goals: goals.length ? goals : prev.goals,
-          goal: (goals[0] ?? prev.goal) as GoalId,
         };
       });
     },
