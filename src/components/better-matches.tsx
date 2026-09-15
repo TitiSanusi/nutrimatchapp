@@ -93,6 +93,15 @@ export function BetterMatches({
           We couldn't find a comparable product with enough reliable data yet.
         </p>
       )}
+
+      {outcome && outcome.status === "ok" && outcome.alternatives.length ? (
+        <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
+          Compared within the same product category
+          {outcome.meta.widened ? " (widened one level to find enough comparable products)" : ""}
+          {outcome.meta.marketRestricted ? " and your market" : ""}. Each alternative is scored by the
+          same NutriMatch engine against the goals you selected.
+        </p>
+      ) : null}
     </section>
   );
 }
