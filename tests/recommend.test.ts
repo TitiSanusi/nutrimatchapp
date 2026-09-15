@@ -9,6 +9,10 @@ import {
 } from "../src/lib/recommend/compare";
 import { RECOMMEND_CONFIG } from "../src/lib/recommend/config";
 import { categoryLadder, countryTagFor, isInMarket } from "../src/lib/food/similar";
+import {
+  checkCategoryCompatibility,
+  isCategoryCompatible,
+} from "../src/lib/recommend/compatibility";
 import type { GoalId } from "../src/lib/nutrimatch";
 import type { GoalScore, GoalStatus, ProductScore } from "../src/lib/scoring";
 import type { FoodProduct } from "../src/lib/food/types";
@@ -288,5 +292,80 @@ describe("candidate retrieval ladder", () => {
   it("caps full product lookups and concurrency", () => {
     expect(RECOMMEND_CONFIG.maxFullLookups).toBeLessThanOrEqual(8);
     expect(RECOMMEND_CONFIG.lookupConcurrency).toBeLessThanOrEqual(3);
+  });
+});
+
+describe("functional category compatibility", () => {
+  const p = (tags: string[]) => ({ barcode: "x", categoryTags: tags } as unknown as FoodProduct);
+  const sweet = p(["en:snacks", "en:sweet-snacks", "en:biscuits"]);
+  const salty = p(["en:snacks", "en:salty-snacks", "en:crackers"]);
+  const both = p(["en:snacks", "en:salty-snacks", "en:sweet-snacks", "en:biscuits"]);
+  const neither = p(["en:snacks", "en:biscuits"]);
+
+  it("accepts a sweet candidate for a sweet scanned product", () => {
+    expect(isCategoryCompatible(sweet, p(["en:sweet-snacks", "en:biscuits"]))).toBe(true);
+  });
+
+  it("rejects a savoury candidate for a sweet scanned product", () => {
+    const r = checkCategoryCompatibility(sweet, salty);
+    expect(r.compatible).toBe(false);
+    expect(r).toMatchObject({ dimensionId: "sweet-vs-savoury", reason: "conflicting" });
+  });
+
+  it("rejects a candidate carrying both sides as ambiguous", () => {
+    const r = checkCategoryCompatibility(sweet, both);
+    expect(r.compatible).toBe(false);
+    expect(r).toMatchObject({ reason: "ambiguous_candidate" });
+  });
+
+  it("rejects a sweet candidate for a savoury scanned product", () => {
+    expect(isCategoryCompatible(salty, sweet)).toBe(false);
+  });
+
+  it("accepts a savoury candidate for a savoury scanned product", () => {
+    expect(isCategoryCompatible(salty, salty)).toBe(true);
+  });
+
+  it("never rejects solely because the distinction is absent", () => {
+    expect(isCategoryCompatible(neither, sweet)).toBe(true);
+    expect(isCategoryCompatible(sweet, neither)).toBe(true);
+    expect(isCategoryCompatible(neither, neither)).toBe(true);
+  });
+
+  it("makes no confident distinction when the scanned product is itself ambiguous", () => {
+    expect(isCategoryCompatible(both, salty)).toBe(true);
+  });
+
+  it("uses category tags only — names and brands are never evidence", () => {
+    const namedSweet = {
+      barcode: "1",
+      name: "Chocolate Cookie",
+      brand: "Brand",
+      categoryTags: ["en:salty-snacks"],
+    } as unknown as FoodProduct;
+    expect(isCategoryCompatible(sweet, namedSweet)).toBe(false);
+  });
+
+  it("does not qualify Dare Vivant Italian Bruschetta as a match for Chips Ahoy", () => {
+    // Real normalized category chains observed from the source.
+    const chipsAhoy = p([
+      "en:snacks",
+      "en:sweet-snacks",
+      "en:biscuits-and-cakes",
+      "en:biscuits-and-crackers",
+      "en:biscuits",
+    ]);
+    const bruschetta = p([
+      "en:snacks",
+      "en:salty-snacks",
+      "en:sweet-snacks",
+      "en:appetizers",
+      "en:biscuits-and-cakes",
+      "en:biscuits-and-crackers",
+      "en:biscuits",
+    ]);
+    // Shares the deepest tag, and is still rejected.
+    expect(bruschetta.categoryTags).toContain("en:biscuits");
+    expect(isCategoryCompatible(chipsAhoy, bruschetta)).toBe(false);
   });
 });
