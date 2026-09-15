@@ -10,25 +10,22 @@ import {
 } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
-import { goals as allGoals, type GoalId } from "./nutrimatch";
+import type { GoalId } from "./nutrimatch";
+import { MAX_GOALS, normalizeGoalSelection } from "./profile-rules";
 
-export const MAX_GOALS = 3;
+export { MAX_GOALS };
 
 export type Profile = {
   name: string;
   email: string;
   age: number | null;
   country: string;
-  /** 1–3 goals, ordered by the user's own priority. */
+  /** 1–3 goals, ordered by the user's own priority. The only goal source. */
   goals: GoalId[];
-  /** Primary goal — always goals[0]. Kept for features that read a single goal. */
-  goal: GoalId;
   avatarPath: string | null;
   avatarUrl: string | null;
   onboarded: boolean;
 };
-
-const validGoals = new Set(allGoals.map((g) => g.id as string));
 
 export const defaultProfile: Profile = {
   name: "",
@@ -36,7 +33,6 @@ export const defaultProfile: Profile = {
   age: null,
   country: "",
   goals: [],
-  goal: "less-sugar",
   avatarPath: null,
   avatarUrl: null,
   onboarded: false,
@@ -59,13 +55,8 @@ type Ctx = {
 
 const NutriMatchContext = createContext<Ctx | null>(null);
 
-/** Keeps goals/goal consistent and inside the 1–3 range. */
-function normalizeGoals(list: unknown): GoalId[] {
-  const arr = (Array.isArray(list) ? list : [])
-    .filter((g): g is GoalId => typeof g === "string" && validGoals.has(g))
-    .slice(0, MAX_GOALS);
-  return arr.length ? arr : [];
-}
+/** Shared rule: known goal ids only, de-duplicated, at most three. */
+const normalizeGoals = normalizeGoalSelection;
 
 type Row = {
   name: string | null;
@@ -98,7 +89,6 @@ export function NutriMatchProvider({ children }: { children: ReactNode }) {
       age: row.age ?? null,
       country: row.country ?? "",
       goals,
-      goal: (goals[0] ?? defaultProfile.goal) as GoalId,
       avatarPath: row.avatar_path,
       avatarUrl,
       onboarded: !!row.onboarded,
@@ -178,7 +168,6 @@ export function NutriMatchProvider({ children }: { children: ReactNode }) {
           ...prev,
           ...patch,
           goals: goals.length ? goals : prev.goals,
-          goal: (goals[0] ?? prev.goal) as GoalId,
         };
       });
     },

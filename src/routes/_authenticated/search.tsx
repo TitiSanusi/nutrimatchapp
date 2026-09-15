@@ -5,6 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { ChevronRight, ImageOff, Loader2, RefreshCw, Search } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { searchProducts } from "@/lib/food.functions";
+import { useNutriMatch } from "@/lib/store";
 
 export const Route = createFileRoute("/_authenticated/search")({
   head: () => ({
@@ -29,6 +30,8 @@ export const Route = createFileRoute("/_authenticated/search")({
 
 function SearchPage() {
   const search = useServerFn(searchProducts);
+  const { profile } = useNutriMatch();
+  const country = profile.country;
   const [input, setInput] = useState("");
   const [query, setQuery] = useState("");
 
@@ -38,8 +41,9 @@ function SearchPage() {
   }, [input]);
 
   const results = useQuery({
-    queryKey: ["food-search", query],
-    queryFn: () => search({ data: { query } }),
+    // Results are market-dependent, so the country is part of the cache key.
+    queryKey: ["food-search", query, country],
+    queryFn: () => search({ data: country ? { query, country } : { query } }),
     enabled: query.length >= 2,
     staleTime: 60 * 1000,
   });

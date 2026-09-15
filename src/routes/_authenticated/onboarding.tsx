@@ -5,7 +5,14 @@ import { AvatarPicker } from "@/components/avatar";
 import { CountrySelect } from "@/components/country-select";
 import { goals, type GoalId } from "@/lib/nutrimatch";
 import { countryByName } from "@/lib/countries";
-import { MAX_GOALS, useNutriMatch } from "@/lib/store";
+import { useNutriMatch } from "@/lib/store";
+import {
+  MAX_GOALS,
+  isValidAge,
+  isValidCountry,
+  isValidGoalCount,
+  toggleGoalSelection,
+} from "@/lib/profile-rules";
 
 export const Route = createFileRoute("/_authenticated/onboarding")({
   head: () => ({
@@ -55,14 +62,14 @@ function Onboarding() {
   }, [ready]);
 
   const ageNumber = Number(age);
-  const ageValid = /^\d{1,3}$/.test(age.trim()) && ageNumber >= 13 && ageNumber <= 120;
+  const ageValid = isValidAge(age);
 
   const nextFromDetails = () => {
     if (!ageValid) {
       setError("Enter an age between 13 and 120.");
       return;
     }
-    if (!country) {
+    if (!isValidCountry(country)) {
       setError("Choose your country to continue.");
       return;
     }
@@ -72,21 +79,13 @@ function Onboarding() {
 
   const toggleGoal = (id: GoalId) => {
     setError("");
-    if (selected.includes(id)) {
-      setNotice("");
-      setSelected(selected.filter((g) => g !== id));
-      return;
-    }
-    if (selected.length >= MAX_GOALS) {
-      setNotice("You can choose up to three goals — deselect one to swap it out.");
-      return;
-    }
-    setNotice("");
-    setSelected([...selected, id]);
+    const next = toggleGoalSelection(selected, id);
+    setSelected(next.selected);
+    setNotice(next.notice);
   };
 
   const nextFromGoals = () => {
-    if (selected.length < 1) {
+    if (!isValidGoalCount(selected)) {
       setError("Pick at least one goal so we know what to match against.");
       return;
     }

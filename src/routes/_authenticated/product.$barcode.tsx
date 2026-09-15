@@ -199,7 +199,7 @@ function Found({ product }: { product: FoodProduct }) {
     (k) => perServing[k] !== null && perServing[k] !== undefined,
   );
 
-  const myGoals = profile.goals.length ? profile.goals : [profile.goal];
+  const myGoals = profile.goals;
   const fetchAlternatives = useServerFn(getAlternatives);
   const alternatives = useQuery({
     queryKey: ["alternatives", product.barcode, myGoals.join(","), profile.country],
