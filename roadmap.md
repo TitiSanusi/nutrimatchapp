@@ -1,5 +1,8 @@
 # Roadmap
 
+Frozen V1 architecture, product rules and guardrails are documented in `AGENTS.md`
+("NutriMatch — V1 foundation"). This file tracks tasks only.
+
 - [x] Remove all invented fit thresholds and classifications from the plan and implementation.
 - [x] Build rule-ready personalized analysis architecture with factual per-goal summaries.
 - [x] Serving-size derivation, nutrient factor display, missing-data handling, portion comparison.
