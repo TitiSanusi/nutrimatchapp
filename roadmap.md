@@ -7,10 +7,10 @@
 - [x] V1 goal-fit scoring for Reduce added sugar, Lose weight, Eat more fibre (centralized config + category context).
 - [x] Result page headline fit, per-goal cards, "How NutriMatch calculated this" transparency section.
 - [x] Regression tests and five-product direction checks.
-- [ ] Simplify the product-result hierarchy for mobile without changing scoring or data handling.
-- [ ] Verify the first screen reaches selected-goal cards, each card has one short evidence sentence,
+- [x] Simplify the product-result hierarchy for mobile without changing scoring or data handling.
+- [x] Verify the first screen reaches selected-goal cards, each card has one short evidence sentence,
   transparency stays collapsed, and removed sections do not reappear under other headings.
-- [ ] Run the complete test suite and document the before/after result-page structure.
+- [x] Run the complete test suite and document the before/after result-page structure.
 
 ## Open for product review
 - Category classification falls back to the general packaged-food context when provider categories
