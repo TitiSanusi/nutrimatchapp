@@ -333,7 +333,7 @@ function FitSection({ fit, product }: { fit: ProductScore; product: FoodProduct 
               {scored
                 ? `Based on ${fit.scoredGoalCount} of your ${fit.consideredGoalCount} selected goal${
                     fit.consideredGoalCount === 1 ? "" : "s"
-                  }. This shows how well the product matches the goals you chose — not whether a food is healthy or unhealthy.`
+                  }. Your score reflects how well this product fits your selected goals.`
                 : "None of your selected goals can be evaluated from this product's available label data. Missing information is never counted as zero."}
             </p>
           </div>
@@ -408,9 +408,9 @@ function FitSection({ fit, product }: { fit: ProductScore; product: FoodProduct 
 function GoalScoreCard({ goal, fit }: { goal: GoalScore; fit: ProductScore }) {
   return (
     <article className="rounded-xl border border-border p-3.5 sm:p-4">
-      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-2">
+      <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between sm:gap-2">
         <h3 className="font-display min-w-0 text-sm font-semibold">{goal.goalLabel}</h3>
-        <p className="text-right text-sm font-medium tabular-nums">
+        <p className="text-sm font-medium tabular-nums sm:text-right">
           {goal.score === null ? (
             <span className="text-muted-foreground">{compactStatus(goal)}</span>
           ) : (
@@ -501,8 +501,7 @@ function PortionComparison({
       <p className="eyebrow mt-3 text-primary">Still want it?</p>
       <h2 className="font-display mt-2 text-lg font-semibold">A portion comparison</h2>
       <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-        A half portion contains half of each listed amount. This comparison is mathematical, not a
-        recommendation or a promise of a health outcome.
+        See how the nutrition changes with half a serving. This is a comparison, not a recommendation.
       </p>
       <div className="mt-5 grid grid-cols-2 overflow-hidden rounded-xl border border-border">
         <div className="border-r border-border bg-surface p-4">
