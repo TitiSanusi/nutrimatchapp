@@ -30,6 +30,7 @@ import {
   strongestImprovement,
   type EvaluatedCandidate,
 } from "./compare";
+import { isCategoryCompatible } from "./compatibility";
 import { RECOMMEND_CONFIG as CFG } from "./config";
 import type { AlternativeCardData, AlternativesOutcome } from "./types";
 
@@ -180,6 +181,10 @@ export async function findAlternatives(
 
       for (const product of fetched) {
         if (!product) continue;
+        // Recommendation-only functional compatibility gate. A rejected
+        // candidate never counts toward the three result slots; the remaining
+        // shortlist keeps being evaluated within the same request cap.
+        if (!isCategoryCompatible(scannedProduct, product)) continue;
         const score = scoreProductFit(product, goals);
         // A candidate that cannot be scored on any selected goal is ineligible.
         if (!score.goals.length) continue;
