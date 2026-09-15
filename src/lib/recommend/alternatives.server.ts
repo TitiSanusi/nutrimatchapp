@@ -169,33 +169,40 @@ export async function findAlternatives(
     for (const b of shortlist) attempted.add(b);
     if (!shortlist.length) continue;
 
-    const fetched = await mapLimited(shortlist, CFG.lookupConcurrency, (code) =>
-      fetchProduct(code, counters),
-    );
-    considered += shortlist.length;
+    // Fetched in small batches so we stop requesting as soon as we have enough
+    // eligible matches — fewer full product reads per scan.
+    for (let i = 0; i < shortlist.length; i += CFG.lookupConcurrency) {
+      const batch = shortlist.slice(i, i + CFG.lookupConcurrency);
+      const fetched = await mapLimited(batch, CFG.lookupConcurrency, (code) =>
+        fetchProduct(code, counters),
+      );
+      considered += batch.length;
 
-    for (const product of fetched) {
-      if (!product) continue;
-      const score = scoreProductFit(product, goals);
-      // A candidate that cannot be scored on any selected goal is ineligible.
-      if (!score.goals.length) continue;
-      const comparisons = compareGoals(scannedScore, score, goals);
-      if (!isBetterMatch(comparisons)) continue;
-      eligible.push({
-        barcode: product.barcode,
-        name: product.name,
-        brand: product.brand,
-        imageUrl: product.imageUrl,
-        score,
-        comparisons,
-        rungIndex,
-        inMarket: isInMarket(product, countryTag),
-      });
+      for (const product of fetched) {
+        if (!product) continue;
+        const score = scoreProductFit(product, goals);
+        // A candidate that cannot be scored on any selected goal is ineligible.
+        if (!score.goals.length) continue;
+        const comparisons = compareGoals(scannedScore, score, goals);
+        if (!isBetterMatch(comparisons)) continue;
+        eligible.push({
+          barcode: product.barcode,
+          name: product.name,
+          brand: product.brand,
+          imageUrl: product.imageUrl,
+          score,
+          comparisons,
+          rungIndex,
+          inMarket: isInMarket(product, countryTag),
+        });
+      }
+      if (eligible.length >= CFG.maxResults) break;
     }
 
     if (eligible.length >= CFG.maxResults) break;
     if (considered >= CFG.maxFullLookups) break;
   }
+
 
   if (!eligible.length) {
     return {
