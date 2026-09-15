@@ -89,7 +89,6 @@ export function NutriMatchProvider({ children }: { children: ReactNode }) {
       age: row.age ?? null,
       country: row.country ?? "",
       goals,
-      goal: (goals[0] ?? defaultProfile.goal) as GoalId,
       avatarPath: row.avatar_path,
       avatarUrl,
       onboarded: !!row.onboarded,
